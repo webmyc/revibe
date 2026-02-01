@@ -1,0 +1,38 @@
+{
+    "name": "revibe",
+    "version": "0.1.0",
+    "description": "Codebase health scanner + AI-powered fixer for vibe-coded projects",
+    "bin": {
+        "revibe": "./bin/revibe.js"
+    },
+    "scripts": {
+        "test": "node bin/revibe.js --version"
+    },
+    "keywords": [
+        "vibe-coding",
+        "code-quality",
+        "audit",
+        "ai-code",
+        "fixer",
+        "revibe",
+        "linter",
+        "code-health"
+    ],
+    "author": "Revibe Team",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/AK-Issac/revibe.git"
+    },
+    "homepage": "https://revibe.help",
+    "bugs": {
+        "url": "https://github.com/AK-Issac/revibe/issues"
+    },
+    "engines": {
+        "node": ">=16"
+    },
+    "files": [
+        "bin/",
+        "README.md"
+    ]
+}

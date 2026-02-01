@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "revibe"
+version = "0.1.0"
+description = "Codebase health scanner + AI-powered fixer for vibe-coded projects"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+keywords = ["vibe-coding", "code-quality", "ai-code", "audit", "linter", "fixer", "revibe"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Quality Assurance",
+]
+authors = [
+    {name = "Revibe Team"}
+]
+
+[project.optional-dependencies]
+pretty = ["rich>=13.0"]
+dev = ["pytest>=7.0", "pytest-cov>=4.0", "ruff>=0.1.0"]
+
+[project.scripts]
+revibe = "revibe.cli:main"
+
+[project.urls]
+Homepage = "https://revibe.help"
+Repository = "https://github.com/AK-Issac/revibe"
+Documentation = "https://revibe.help"
+Issues = "https://github.com/AK-Issac/revibe/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/revibe"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
