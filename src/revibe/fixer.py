@@ -7,7 +7,7 @@ Cursor, Claude, Copilot, or any AI coding tool.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 
 from revibe import __version__
 from revibe.metrics import CodebaseMetrics, DuplicateGroup
@@ -22,7 +22,7 @@ class Fix:
     title: str
     description: str
     prompt: str  # The copy-paste prompt for AI tools
-    affected_files: List[str] = field(default_factory=list)
+    affected_files: list[str] = field(default_factory=list)
     verification: str = ""  # How to verify the fix worked
 
 
@@ -30,7 +30,7 @@ class Fix:
 class FixPlan:
     """Complete fix plan for a codebase."""
 
-    fixes: List[Fix]
+    fixes: list[Fix]
     codebase_path: str
     health_score: int
     risk_level: str
@@ -38,19 +38,19 @@ class FixPlan:
     version: str = __version__
 
     @property
-    def critical_fixes(self) -> List[Fix]:
+    def critical_fixes(self) -> list[Fix]:
         return [f for f in self.fixes if f.priority == "CRITICAL"]
 
     @property
-    def high_fixes(self) -> List[Fix]:
+    def high_fixes(self) -> list[Fix]:
         return [f for f in self.fixes if f.priority == "HIGH"]
 
     @property
-    def medium_fixes(self) -> List[Fix]:
+    def medium_fixes(self) -> list[Fix]:
         return [f for f in self.fixes if f.priority == "MEDIUM"]
 
     @property
-    def low_fixes(self) -> List[Fix]:
+    def low_fixes(self) -> list[Fix]:
         return [f for f in self.fixes if f.priority == "LOW"]
 
 
@@ -215,7 +215,7 @@ For each function:
             description=f"Test coverage is {ratio_pct:.1f}%. Target is 80%. "
                         f"Add ~{target_tests} lines of test code.",
             prompt=prompt,
-            affected_files=list(set(f["file"] for f in top_funcs)),
+            affected_files=list({f["file"] for f in top_funcs}),
             verification="Run: pytest --cov to check coverage percentage",
         )
 
@@ -254,11 +254,11 @@ and MUST have comprehensive error handling."""
             description="Functions handling payments, auth, or sensitive data have no "
                         "try/catch or input validation. This is a security risk.",
             prompt=prompt,
-            affected_files=list(set(f for f, _ in sensitive)),
+            affected_files=list({f for f, _ in sensitive}),
             verification="Review each function for try/except blocks and input validation",
         )
 
-    def _generate_duplicate_fix(self, duplicate_groups: List[DuplicateGroup]) -> Optional[Fix]:
+    def _generate_duplicate_fix(self, duplicate_groups: list[DuplicateGroup]) -> Optional[Fix]:
         """Generate fix for duplicate files."""
         if not duplicate_groups:
             return None
@@ -337,7 +337,7 @@ Start with {first_func.name}() in {first_file} — it's {first_func.line_count} 
             title=f"Refactor {len(long_funcs)} long functions",
             description="Functions over 80 lines are hard to test and maintain. Break them up.",
             prompt=prompt,
-            affected_files=list(set(f for f, _ in long_funcs)),
+            affected_files=list({f for f, _ in long_funcs}),
             verification="Each function should be under 50 lines after refactoring",
         )
 
@@ -424,7 +424,7 @@ Address critical TODOs (FIXME, BUG, HACK) first."""
             description="These markers indicate unfinished or problematic code. "
                         "Review and address or remove them.",
             prompt=prompt,
-            affected_files=list(set(f for f, _, _ in todos)),
+            affected_files=list({f for f, _, _ in todos}),
             verification="Run `grep -r 'TODO\\|FIXME' .` to verify reduction",
         )
 

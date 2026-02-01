@@ -117,7 +117,8 @@ def bloated_project(temp_dir):
     src_dir.mkdir()
 
     # Verbose naming
-    (src_dir / "very_long_module_name_that_handles_user_authentication.py").write_text('''"""A module with overly verbose naming."""
+    (src_dir / "very_long_module_name_that_handles_user_authentication.py").write_text(
+        '''"""A module with overly verbose naming."""
 
 def handle_user_authentication_with_password_and_two_factor_verification(username, password, two_factor_code):
     """This function has an extremely long name that is typical of AI-generated code."""
@@ -133,10 +134,10 @@ def validate_user_input_and_sanitize_before_database_insertion(user_input):
 
 class UserAuthenticationManagerWithSessionHandling:
     """A class with an overly verbose name."""
-    
+
     def __init__(self):
         pass
-    
+
     def authenticate_user_and_create_session_token(self):
         pass
 ''')
@@ -239,7 +240,7 @@ class User:
     def __init__(self, name, email):
         self.name = name
         self.email = email
-    
+
     def to_dict(self):
         return {"name": self.name, "email": self.email}
 
@@ -248,7 +249,7 @@ class Order:
     def __init__(self, user_id, items):
         self.user_id = user_id
         self.items = items
-    
+
     def calculate_total(self):
         return sum(item["price"] for item in self.items)
 ''')

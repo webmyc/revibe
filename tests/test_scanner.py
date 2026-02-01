@@ -100,7 +100,7 @@ class TestScanCodebase:
         assert len(files) > 0
 
         # Check languages detected
-        languages = set(f.language for f in files)
+        languages = {f.language for f in files}
         assert "Python" in languages
 
         # Check test file detection
@@ -113,7 +113,7 @@ class TestScanCodebase:
     def test_scan_mixed_languages(self, mixed_languages_project):
         files = scan_codebase(str(mixed_languages_project))
 
-        languages = set(f.language for f in files)
+        languages = {f.language for f in files}
         assert "Python" in languages
         assert "JavaScript" in languages
         assert "TypeScript" in languages

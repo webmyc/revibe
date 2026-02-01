@@ -1,6 +1,5 @@
 """Tests for the analyzer module."""
 
-import pytest
 
 from revibe.analyzer import (
     FileAnalysis,
@@ -193,7 +192,7 @@ class TestAnalyzeFiles:
         analyses = analyze_files(files)
 
         # Should analyze files from multiple languages
-        languages = set(a.source_file.language for a in analyses)
+        languages = {a.source_file.language for a in analyses}
         assert len(languages) > 1
 
     def test_analyze_empty_project(self, empty_project):

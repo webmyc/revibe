@@ -2,9 +2,7 @@
 
 import json
 
-import pytest
-
-from revibe.fixer import FixerEngine, generate_fix_plan
+from revibe.fixer import generate_fix_plan
 from revibe.report_html import generate_html_report
 from revibe.report_json import generate_json_report
 from revibe.report_terminal import print_terminal_report

@@ -2,17 +2,20 @@
 Verbose tests for terminal reporting to increase test volume and coverage ratio.
 """
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch, call
-from revibe.report_terminal import (
-    print_terminal_report, 
-    print_terminal_report_plain, 
-    print_terminal_report_rich,
-    get_risk_color,
-    get_risk_emoji
-)
+
+from revibe.fixer import Fix, FixPlan
 from revibe.metrics import CodebaseMetrics, DuplicateGroup
-from revibe.fixer import FixPlan, Fix
+from revibe.report_terminal import (
+    get_risk_color,
+    get_risk_emoji,
+    print_terminal_report,
+    print_terminal_report_plain,
+    print_terminal_report_rich,
+)
+
 
 @pytest.fixture
 def verbose_metrics():
@@ -70,33 +73,33 @@ class TestTerminalReportPlainVerbose:
                 ],
                 codebase_path=".", health_score=65, risk_level="MODERATE", generated_at="now"
             )
-            
+
             print_terminal_report_plain(verbose_metrics, "0.1.0")
-            
+
         captured = capsys.readouterr()
         out = captured.out
-        
+
         # Header
         assert "🔍 Revibe v0.1.0 — Scan Complete" in out
-        
+
         # Box
         assert "╭─────────────────────────────────────╮" in out
         assert "│     Health Score:  65 / 100          │" in out
         assert "│     Risk Level:   🟡 MODERATE       │" in out
         assert "╰─────────────────────────────────────╯" in out
-        
+
         # Metrics
         assert "Source Code:    8,000 lines (80 files)" in out
         assert "Test Code:      2,000 lines (20 files)" in out
         assert "Test Ratio:     25.0% ⚠️ (target: ≥80%)" in out
         assert "Est. Defects:   ~200 bugs hiding in your code" in out
-        
+
         # Duplicates
         assert "Duplicates:     2 groups (redundant code)" in out
-        
+
         # Smells
         assert "AI Smells:      2 of 8 detected" in out
-        
+
         # Fixes logic (top 3)
         assert "Top Fixes:" in out
         assert "🔴 CRITICAL  Fix Critical" in out
@@ -111,32 +114,34 @@ class TestTerminalReportPlainVerbose:
     def test_plain_top_fixes_empty(self, capsys, verbose_metrics):
         """Verify no fixes section if empty."""
         with patch("revibe.fixer.generate_fix_plan") as mock_plan:
-            mock_plan.return_value = FixPlan(fixes=[], codebase_path=".", health_score=65, risk_level="MODERATE", generated_at="now")
+            mock_plan.return_value = FixPlan(
+                fixes=[], codebase_path=".", health_score=65, risk_level="MODERATE", generated_at="now"
+            )
             print_terminal_report_plain(verbose_metrics, "0.1.0")
-            
+
         out = capsys.readouterr().out
         assert "Top Fixes:" not in out
 
 class TestTerminalReportRichVerbose:
     """Verbose verification for rich output calls."""
-    
+
     @patch("revibe.report_terminal.Console")
     @patch("revibe.report_terminal.Panel")
     @patch("revibe.report_terminal.Table")
     def test_rich_calls_sequence(self, mock_table, mock_panel, mock_console, verbose_metrics):
         """Verify sequence of rich object creation."""
-        
+
         # Setup table mock
         table_instance = mock_table.return_value
-        
+
         # Run
         print_terminal_report_rich(verbose_metrics, "0.1.0")
-        
+
         # Verify console prints
         c_prints = mock_console.return_value.print.call_args_list
         # Expect at least: header, panel, table, fixes header, fix1, fix2, fix3, footer
         assert len(c_prints) >= 10
-        
+
         # Verify Panel creation
         mock_panel.assert_called_once()
         args, kwargs = mock_panel.call_args
@@ -146,7 +151,7 @@ class TestTerminalReportRichVerbose:
         # Verify Table rows
         # We expect add_row calls
         row_calls = table_instance.add_row.call_args_list
-        
+
         # 1. Source Code
         assert "Source Code:" in row_calls[0][0][0]
         # 2. Test Code

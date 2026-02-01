@@ -1,6 +1,5 @@
 """Tests for the fixer module — THE KEY DIFFERENTIATOR."""
 
-import pytest
 
 from revibe.analyzer import analyze_files
 from revibe.duplicates import find_all_duplicates

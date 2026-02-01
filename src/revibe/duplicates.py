@@ -2,9 +2,7 @@
 
 import hashlib
 from collections import defaultdict
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
 
 from revibe.analyzer import FileAnalysis
 from revibe.metrics import DuplicateGroup
@@ -19,7 +17,7 @@ def compute_file_hash(path: Path) -> str:
         return ""
 
 
-def find_exact_duplicates(analyses: List[FileAnalysis]) -> List[DuplicateGroup]:
+def find_exact_duplicates(analyses: list[FileAnalysis]) -> list[DuplicateGroup]:
     """
     Find files that are exact copies (same content hash).
 
@@ -29,7 +27,7 @@ def find_exact_duplicates(analyses: List[FileAnalysis]) -> List[DuplicateGroup]:
     Returns:
         List of DuplicateGroup for exact duplicates
     """
-    hash_to_files: Dict[str, List[str]] = defaultdict(list)
+    hash_to_files: dict[str, list[str]] = defaultdict(list)
 
     for analysis in analyses:
         file_hash = compute_file_hash(analysis.source_file.path)
@@ -38,7 +36,7 @@ def find_exact_duplicates(analyses: List[FileAnalysis]) -> List[DuplicateGroup]:
 
     # Filter to groups with more than one file
     duplicates = []
-    for file_hash, files in hash_to_files.items():
+    for _file_hash, files in hash_to_files.items():
         if len(files) > 1:
             duplicates.append(DuplicateGroup(
                 files=sorted(files),
@@ -70,8 +68,8 @@ def calculate_similarity(analysis1: FileAnalysis, analysis2: FileAnalysis) -> fl
         line_sim = min(lines1, lines2) / max(lines1, lines2)
 
     # Function name overlap (up to 0.5)
-    funcs1 = set(f.name for f in analysis1.functions)
-    funcs2 = set(f.name for f in analysis2.functions)
+    funcs1 = {f.name for f in analysis1.functions}
+    funcs2 = {f.name for f in analysis2.functions}
 
     if not funcs1 and not funcs2:
         func_sim = 0.0
@@ -83,8 +81,8 @@ def calculate_similarity(analysis1: FileAnalysis, analysis2: FileAnalysis) -> fl
         func_sim = len(shared_funcs) / len(all_funcs)
 
     # Class name overlap (up to 0.2)
-    classes1 = set(c.name for c in analysis1.classes)
-    classes2 = set(c.name for c in analysis2.classes)
+    classes1 = {c.name for c in analysis1.classes}
+    classes2 = {c.name for c in analysis2.classes}
 
     if not classes1 and not classes2:
         class_sim = 0.0
@@ -102,9 +100,9 @@ def calculate_similarity(analysis1: FileAnalysis, analysis2: FileAnalysis) -> fl
 
 
 def find_near_duplicates(
-    analyses: List[FileAnalysis],
+    analyses: list[FileAnalysis],
     threshold: float = 0.5,
-) -> List[DuplicateGroup]:
+) -> list[DuplicateGroup]:
     """
     Find files that are near-duplicates (similar structure).
 
@@ -122,14 +120,14 @@ def find_near_duplicates(
         return []
 
     # Group by language for comparison
-    by_language: Dict[str, List[FileAnalysis]] = defaultdict(list)
+    by_language: dict[str, list[FileAnalysis]] = defaultdict(list)
     for analysis in valid_analyses:
         by_language[analysis.source_file.language].append(analysis)
 
     near_duplicates = []
-    processed: Set[Tuple[str, str]] = set()
+    processed: set[tuple[str, str]] = set()
 
-    for language, lang_analyses in by_language.items():
+    for _language, lang_analyses in by_language.items():
         if len(lang_analyses) < 2:
             continue
 
@@ -159,9 +157,9 @@ def find_near_duplicates(
 
 
 def find_all_duplicates(
-    analyses: List[FileAnalysis],
+    analyses: list[FileAnalysis],
     near_duplicate_threshold: float = 0.5,
-) -> List[DuplicateGroup]:
+) -> list[DuplicateGroup]:
     """
     Find all duplicate files (exact and near-duplicates).
 
@@ -186,7 +184,7 @@ def find_all_duplicates(
     return exact + filtered_near
 
 
-def format_duplicate_report(groups: List[DuplicateGroup]) -> str:
+def format_duplicate_report(groups: list[DuplicateGroup]) -> str:
     """Format duplicate groups for display."""
     if not groups:
         return "No duplicate files detected."

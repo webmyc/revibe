@@ -4,25 +4,27 @@ Targeting high LOC for test-to-code ratio improvement.
 """
 
 import pytest
-from revibe.report_html import (
-    _get_component_styles, 
-    _get_layout_styles, 
-    _get_base_styles, 
-    _get_print_styles, 
-    generate_html_report,
-    _get_structure_styles,
-    _get_header_styles,
-    _get_footer_styles,
-    _get_card_styles,
-    _get_score_styles,
-    _get_risk_styles,
-    _get_fix_styles,
-    _get_code_styles,
-    _get_smell_styles,
-    _get_lang_styles,
-    _get_duplicate_styles
-)
+
 from revibe.metrics import CodebaseMetrics, DuplicateGroup
+from revibe.report_html import (
+    _get_base_styles,
+    _get_card_styles,
+    _get_code_styles,
+    _get_component_styles,
+    _get_duplicate_styles,
+    _get_fix_styles,
+    _get_footer_styles,
+    _get_header_styles,
+    _get_lang_styles,
+    _get_layout_styles,
+    _get_print_styles,
+    _get_risk_styles,
+    _get_score_styles,
+    _get_smell_styles,
+    _get_structure_styles,
+    generate_html_report,
+)
+
 
 class TestHtmlStylesVerbose:
     """Verbose tests for HTML styles."""
@@ -30,7 +32,7 @@ class TestHtmlStylesVerbose:
     def test_component_styles_exhaustiveness(self):
         """Verify every expected component class is defined in CSS."""
         styles = _get_component_styles()
-        
+
         # Confirmed selectors from report_html.py
         expected_selectors = [
             ".card",
@@ -42,7 +44,7 @@ class TestHtmlStylesVerbose:
             ".score-low",
             ".score-moderate",
             ".score-elevated",
-            ".score-high", 
+            ".score-high",
             ".health-details",
             ".risk-badge",
             ".risk-low",
@@ -54,9 +56,9 @@ class TestHtmlStylesVerbose:
             ".fix-item",
             ".fix-header",
             ".fix-priority",
-            ".priority-critical", 
+            ".priority-critical",
             ".fix-title",
-            ".fix-toggle", 
+            ".fix-toggle",
             ".fix-content",
             ".fix-description",
             ".fix-prompt",
@@ -79,20 +81,20 @@ class TestHtmlStylesVerbose:
             ".duplicate-files",
             ".tip",
         ]
-        
+
         missing = []
         for selector in expected_selectors:
-            # Check if selector key is present. 
+            # Check if selector key is present.
             # Note: CSS string matching is loose.
             if selector not in styles:
                 missing.append(selector)
-        
+
         assert not missing, f"Missing selectors: {missing}"
 
     def test_layout_styles_exhaustiveness(self):
         """Verify layout styles."""
         styles = _get_layout_styles()
-        
+
         expected = [
             ".container",
             "header",
@@ -107,7 +109,7 @@ class TestHtmlStylesVerbose:
             "footer a",
             "footer code",
         ]
-        
+
         for selector in expected:
             assert selector in styles
 
@@ -123,19 +125,19 @@ class TestHtmlStylesVerbose:
         styles = _get_base_styles()
         # Verify variables
         vars = [
-            "--bg-primary", "--bg-secondary", "--text-primary", 
+            "--bg-primary", "--bg-secondary", "--text-primary",
             "--accent", "--success", "--warning", "--danger"
         ]
         for v in vars:
             assert v in styles
-        
+
         # Verify body
         assert "body {" in styles
         assert "font-family:" in styles
 
 class TestHtmlReportGenerationVerbose:
     """Detailed tests for report generation."""
-    
+
     @pytest.fixture
     def robust_metrics(self):
         return CodebaseMetrics(
@@ -154,7 +156,7 @@ class TestHtmlReportGenerationVerbose:
             ai_smell_scores={
                 "excessive_comments": 0.2,
                 "verbose_naming": 0.6,
-                "missing_error_handling": 0.8, 
+                "missing_error_handling": 0.8,
             },
             duplicate_groups=[
                 DuplicateGroup(files=["a.py", "b.py"], is_exact=True, similarity=1.0)
@@ -166,14 +168,14 @@ class TestHtmlReportGenerationVerbose:
     def test_report_contains_all_metrics(self, robust_metrics):
         """Verify all metrics appear in the HTML output."""
         report = generate_html_report(robust_metrics, "/path/to/code")
-        
+
         # Check counts
         assert "4,000" in report # source loc
         assert "78" in report # health score
         # Check computed strings
         assert "MODERATE" in report
-        assert "Excessive Comments" in report.title() or "Excessive comments" in report.lower() # Title case handling checks
-        
+        assert "Excessive Comments" in report.title() or "Excessive comments" in report.lower()
+
         # Check specific values
         assert "15" in report # features
         assert "50" in report # feature interactions (paths)
@@ -239,13 +241,13 @@ class TestStyleHelpersVerbose:
         assert ".container" in css
         assert "max-width: 1200px" in css
         assert "main" in css
-    
+
     def test_get_header_styles(self):
         css = _get_header_styles()
         assert "header" in css
         assert ".header-content" in css
         assert ".meta" in css
-        
+
     def test_get_footer_styles(self):
         css = _get_footer_styles()
         assert "footer" in css

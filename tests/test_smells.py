@@ -1,6 +1,5 @@
 """Tests for the smells module."""
 
-import pytest
 
 from revibe.analyzer import analyze_files
 from revibe.scanner import scan_codebase
@@ -207,7 +206,7 @@ class TestDetectAllSmells:
 
         # Healthy project should generally have low smell scores
         healthy_avg = sum(healthy_scores.values()) / len(healthy_scores)
-        
+
         # Average smell score should be under 0.5 for a healthy project
         assert healthy_avg < 0.5
 

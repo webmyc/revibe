@@ -2,7 +2,6 @@
 
 from collections import Counter
 from dataclasses import dataclass
-from typing import Dict, List
 
 from revibe.analyzer import FileAnalysis
 from revibe.constants import (
@@ -20,7 +19,7 @@ class SmellResult:
     name: str
     score: float  # 0.0 - 1.0
     description: str
-    details: List[str]
+    details: list[str]
 
 
 def clamp_score(score: float) -> float:
@@ -28,7 +27,7 @@ def clamp_score(score: float) -> float:
     return max(0.0, min(1.0, score))
 
 
-def detect_excessive_comments(analyses: List[FileAnalysis]) -> SmellResult:
+def detect_excessive_comments(analyses: list[FileAnalysis]) -> SmellResult:
     """
     Detect excessive comment-to-code ratio.
 
@@ -72,7 +71,7 @@ def detect_excessive_comments(analyses: List[FileAnalysis]) -> SmellResult:
     )
 
 
-def detect_verbose_naming(analyses: List[FileAnalysis]) -> SmellResult:
+def detect_verbose_naming(analyses: list[FileAnalysis]) -> SmellResult:
     """
     Detect overly verbose function/variable names.
 
@@ -114,7 +113,7 @@ def detect_verbose_naming(analyses: List[FileAnalysis]) -> SmellResult:
     )
 
 
-def detect_boilerplate_heavy(analyses: List[FileAnalysis]) -> SmellResult:
+def detect_boilerplate_heavy(analyses: list[FileAnalysis]) -> SmellResult:
     """
     Detect high import-to-function ratio.
 
@@ -153,7 +152,7 @@ def detect_boilerplate_heavy(analyses: List[FileAnalysis]) -> SmellResult:
     )
 
 
-def detect_inconsistent_patterns(analyses: List[FileAnalysis]) -> SmellResult:
+def detect_inconsistent_patterns(analyses: list[FileAnalysis]) -> SmellResult:
     """
     Detect mixed naming conventions within the codebase.
 
@@ -205,13 +204,13 @@ def detect_inconsistent_patterns(analyses: List[FileAnalysis]) -> SmellResult:
     )
 
 
-def detect_dead_code_indicators(analyses: List[FileAnalysis]) -> SmellResult:
+def detect_dead_code_indicators(analyses: list[FileAnalysis]) -> SmellResult:
     """
     Detect duplicate function names across files.
 
     AI often re-implements the same function in multiple files.
     """
-    function_locations: Dict[str, List[str]] = {}
+    function_locations: dict[str, list[str]] = {}
 
     for a in analyses:
         for func in a.functions:
@@ -250,7 +249,7 @@ def detect_dead_code_indicators(analyses: List[FileAnalysis]) -> SmellResult:
     )
 
 
-def detect_over_engineering(analyses: List[FileAnalysis]) -> SmellResult:
+def detect_over_engineering(analyses: list[FileAnalysis]) -> SmellResult:
     """
     Detect excessive class density.
 
@@ -290,7 +289,7 @@ def detect_over_engineering(analyses: List[FileAnalysis]) -> SmellResult:
     )
 
 
-def detect_missing_error_handling(analyses: List[FileAnalysis]) -> SmellResult:
+def detect_missing_error_handling(analyses: list[FileAnalysis]) -> SmellResult:
     """
     Detect functions without error handling.
 
@@ -305,7 +304,7 @@ def detect_missing_error_handling(analyses: List[FileAnalysis]) -> SmellResult:
         # Skip test files - they usually rely on assertions, not error handling
         if a.source_file.is_test:
             continue
-            
+
         total_functions += len(a.functions)
         if a.has_error_handling:
             functions_with_errors += len(a.functions)
@@ -339,7 +338,7 @@ def detect_missing_error_handling(analyses: List[FileAnalysis]) -> SmellResult:
     )
 
 
-def detect_copy_paste_artifacts(analyses: List[FileAnalysis]) -> SmellResult:
+def detect_copy_paste_artifacts(analyses: list[FileAnalysis]) -> SmellResult:
     """
     Detect repeated string literals across files.
 
@@ -381,7 +380,7 @@ def detect_copy_paste_artifacts(analyses: List[FileAnalysis]) -> SmellResult:
     )
 
 
-def detect_all_smells(analyses: List[FileAnalysis]) -> Dict[str, float]:
+def detect_all_smells(analyses: list[FileAnalysis]) -> dict[str, float]:
     """
     Run all smell detectors and return scores.
 
@@ -414,7 +413,7 @@ def detect_all_smells(analyses: List[FileAnalysis]) -> Dict[str, float]:
     return results
 
 
-def get_smell_descriptions() -> Dict[str, str]:
+def get_smell_descriptions() -> dict[str, str]:
     """Get human-readable descriptions for each smell."""
     return {
         "excessive_comments": "High ratio of comments to code (AI tends to over-explain)",

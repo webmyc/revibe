@@ -237,13 +237,13 @@ class TestMetricsSummary:
                 pytest.fail("Summary dictionary is empty")
 
             required_fields = [
-                "total_files", "source_files", "health_score", 
+                "total_files", "source_files", "health_score",
                 "risk_level", "estimated_defects"
             ]
-            
+
             for field in required_fields:
                 assert field in summary, f"Missing required field: {field}"
-                
+
             assert summary["health_score"] == 75
 
         except Exception as e:

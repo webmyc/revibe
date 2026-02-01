@@ -1,9 +1,10 @@
 """File discovery and language detection for Revibe scanner."""
 
 import os
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator, List, Optional, Set
+from typing import Optional
 
 from revibe.constants import (
     IGNORE_DIRECTORIES,
@@ -38,7 +39,7 @@ def detect_language(path: Path) -> Optional[str]:
 
 def is_test_file(path: Path, relative_path: str) -> bool:
     """Determine if a file is a test file based on path and name."""
-    path_lower = relative_path.lower()
+    relative_path.lower()
     name_lower = path.name.lower()
 
     # Check if any part of the path is a test directory
@@ -86,7 +87,7 @@ def should_ignore_file(path: Path) -> bool:
 
 def scan_directory(
     root_path: Path,
-    additional_ignores: Optional[Set[str]] = None,
+    additional_ignores: Optional[set[str]] = None,
 ) -> Iterator[SourceFile]:
     """
     Scan a directory tree and yield discovered source files.
@@ -151,8 +152,8 @@ def scan_directory(
 
 def scan_codebase(
     path: str,
-    additional_ignores: Optional[List[str]] = None,
-) -> List[SourceFile]:
+    additional_ignores: Optional[list[str]] = None,
+) -> list[SourceFile]:
     """
     Scan a codebase and return all discovered source files.
 
@@ -184,7 +185,7 @@ def scan_codebase(
     return files
 
 
-def get_language_breakdown(files: List[SourceFile]) -> dict:
+def get_language_breakdown(files: list[SourceFile]) -> dict:
     """
     Get a breakdown of source files by language.
 

@@ -2,11 +2,14 @@
 Verbose tests for fixer module to ensure high quality prompts and increase test volume.
 """
 
-import pytest
 from unittest.mock import MagicMock
-from revibe.fixer import FixerEngine, FixPlan, Fix
+
+import pytest
+
+from revibe.analyzer import FileAnalysis, FunctionInfo, SourceFile
+from revibe.fixer import FixerEngine
 from revibe.metrics import CodebaseMetrics, DuplicateGroup
-from revibe.analyzer import FileAnalysis, FunctionInfo,  SourceFile
+
 
 @pytest.fixture
 def fixer_metrics():
@@ -15,7 +18,7 @@ def fixer_metrics():
     analysis = FileAnalysis(
         source_file=source_file,
         total_lines=200,
-        code_lines=150, 
+        code_lines=150,
         comment_lines=10,
         blank_lines=40,
         functions=[
@@ -41,7 +44,7 @@ def fixer_metrics():
     metrics.todos = [("src/main.py", 10, "TODO: fix critical bug")]
     metrics.health_score = 40
     metrics.risk_level = "HIGH"
-    
+
     return metrics
 
 class TestFixerPromptsVerbose:
@@ -51,10 +54,10 @@ class TestFixerPromptsVerbose:
         """Verify critical test fix prompt content."""
         engine = FixerEngine(".")
         plan = engine.generate_fixes(fixer_metrics)
-        
+
         fix = next(f for f in plan.fixes if "Add Tests" in f.title)
         assert fix.priority == "CRITICAL"
-        
+
         # Check specific instructions in prompt
         prompt = fix.prompt
         assert "Analyze this codebase and generate comprehensive test files" in prompt
@@ -63,7 +66,7 @@ class TestFixerPromptsVerbose:
         assert "2. Tests edge cases" in prompt
         assert "3. Tests error conditions" in prompt
         assert "4. Uses pytest fixtures" in prompt
-        
+
         # Check context
         assert "src/main.py" in prompt
         assert "long_func" in prompt
@@ -72,16 +75,16 @@ class TestFixerPromptsVerbose:
         """Verify error handling fix prompt."""
         engine = FixerEngine(".")
         plan = engine.generate_fixes(fixer_metrics)
-        
+
         fix = next(f for f in plan.fixes if "lack error handling" in f.title)
-        
+
         prompt = fix.prompt.lower()
         assert "handle sensitive operations" in prompt
         assert "security and reliability risk" in prompt
         assert "input validation" in prompt
         assert "try/except blocks" in prompt
         assert "logging of errors" in prompt
-        
+
         assert "sensitive_func" in fix.prompt
         assert "src/main.py" in fix.prompt
 
@@ -89,14 +92,14 @@ class TestFixerPromptsVerbose:
         """Verify duplicate fix prompt."""
         engine = FixerEngine(".")
         plan = engine.generate_fixes(fixer_metrics)
-        
+
         fix = next(f for f in plan.fixes if "duplicate file groups" in f.title)
-        
+
         assert "Consolidate them to reduce maintenance" in fix.prompt
         assert "Identify the most complete/canonical version" in fix.prompt
         assert "Delete the duplicate files" in fix.prompt
         assert "Update all imports" in fix.prompt
-        
+
         assert "a.py" in fix.prompt
         assert "b.py" in fix.prompt
 
@@ -104,14 +107,14 @@ class TestFixerPromptsVerbose:
         """Verify refactoring prompt."""
         engine = FixerEngine(".")
         plan = engine.generate_fixes(fixer_metrics)
-        
+
         fix = next(f for f in plan.fixes if "long functions" in f.title)
-        
+
         assert "too long and should be refactored" in fix.prompt
         assert "Identify logical sections" in fix.prompt
         assert "Create well-named helper functions" in fix.prompt
         assert "Keep the original function as a coordinator" in fix.prompt
-        
+
         assert "long_func" in fix.prompt
         assert "99 lines" in fix.prompt
 
@@ -119,9 +122,9 @@ class TestFixerPromptsVerbose:
         """Verify code smell prompt."""
         engine = FixerEngine(".")
         plan = engine.generate_fixes(fixer_metrics)
-        
+
         fix = next(f for f in plan.fixes if "AI code smell" in f.title)
-        
+
         assert "excessive_comments" in fix.prompt
         assert "Remove obvious/redundant comments" in fix.prompt # Check instruction exists
 
@@ -129,9 +132,9 @@ class TestFixerPromptsVerbose:
         """Verify optimization prompt."""
         engine = FixerEngine(".")
         plan = engine.generate_fixes(fixer_metrics)
-        
+
         fix = next(f for f in plan.fixes if "optimization" in f.title)
-        
+
         assert "Remove dead code" in fix.prompt
         assert "Consolidate utilities" in fix.prompt
         assert "15,000" in fix.prompt # LOC count
@@ -144,14 +147,14 @@ class TestFixerRenderingVerbose:
         engine = FixerEngine(".")
         plan = engine.generate_fixes(fixer_metrics)
         rules = engine.render_cursor_rules(plan)
-        
+
         assert "# Revibe Rules" in rules
         assert "HIGH RISK" in rules
-        
+
         # Check rule generation
         assert "- ALWAYS add tests" in rules or "ALWAYS" in rules
         assert "DO NOT add new features" in rules # For low health score (40)
-        
+
         # Check specific fixes mentioned
         assert "error handling" in rules.lower()
 
@@ -160,7 +163,7 @@ class TestFixerRenderingVerbose:
         engine = FixerEngine(".")
         plan = engine.generate_fixes(fixer_metrics)
         md = engine.render_claude_md(plan)
-        
+
         assert "Code Health Notes (Revibe)" in md
         assert "Health score: 40/100" in md
         assert "**Add Tests**" in md or "Add Tests" in md
@@ -171,11 +174,11 @@ class TestFixerRenderingVerbose:
         engine = FixerEngine(".")
         plan = engine.generate_fixes(fixer_metrics)
         md = engine.render_markdown(plan)
-        
+
         assert "# Revibe Fix Instructions" in md
         assert "> Codebase: ." in md
         assert "40/100" in md
-        
+
         # Check sections exist
         assert "## 🔴 CRITICAL" in md
         assert "### Prompt 1:" in md

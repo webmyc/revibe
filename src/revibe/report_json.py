@@ -2,6 +2,7 @@
 
 import json
 from datetime import datetime
+
 from revibe.metrics import CodebaseMetrics
 
 
@@ -84,7 +85,7 @@ def _create_issues(files_analysis: list, metrics: CodebaseMetrics) -> dict:
     all_todos = []
     sensitive_funcs = []
     long_funcs = []
-    
+
     for analysis in files_analysis:
         # Collect TODOs
         for line, content in analysis.todos:
@@ -93,7 +94,7 @@ def _create_issues(files_analysis: list, metrics: CodebaseMetrics) -> dict:
                 "line": line,
                 "content": content
             })
-            
+
         # Collect sensitive functions
         for func in analysis.sensitive_functions:
             sensitive_funcs.append({
@@ -101,7 +102,7 @@ def _create_issues(files_analysis: list, metrics: CodebaseMetrics) -> dict:
                 "name": func.name,
                 "line": func.start_line
             })
-            
+
         # Collect long functions
         for func in analysis.long_functions:
             long_funcs.append({
@@ -109,20 +110,20 @@ def _create_issues(files_analysis: list, metrics: CodebaseMetrics) -> dict:
                 "name": func.name,
                 "lines": func.line_count
             })
-    
+
     # Sort complex files
     complex_files = sorted(
         [
             {
-                "file": a.source_file.relative_path, 
+                "file": a.source_file.relative_path,
                 "score": round(a.complexity_score, 1)
-            } 
+            }
             for a in files_analysis if a.complexity_score > 10
         ],
         key=lambda x: x["score"],
         reverse=True
     )
-            
+
     return {
         "complex_files": complex_files,
         "long_functions": long_funcs,

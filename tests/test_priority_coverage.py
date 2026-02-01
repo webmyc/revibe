@@ -7,18 +7,17 @@ Focuses on:
 - fixer.py: render_markdown edge cases
 """
 
-import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from revibe.analyzer import FileAnalysis, FunctionInfo, ClassInfo
+from revibe.analyzer import ClassInfo, FileAnalysis, FunctionInfo
 from revibe.cli import run_scan
-from revibe.duplicates import calculate_similarity, find_near_duplicates, DuplicateGroup
+from revibe.duplicates import calculate_similarity, find_near_duplicates
+from revibe.fixer import FixerEngine, FixPlan
 from revibe.metrics import CodebaseMetrics
-from revibe.scanner import SourceFile
-from revibe.fixer import FixPlan, FixerEngine, Fix
 from revibe.report_terminal import print_terminal_report_rich
+from revibe.scanner import SourceFile
 
 
 @pytest.fixture
@@ -77,10 +76,10 @@ class TestDuplicatesPriority:
         f1 = FunctionInfo("foo", 1, 10, 10)
         # args: name, start, end, method_count
         c1 = ClassInfo("Bar", 1, 10, 1)
-        
+
         a1 = mock_analysis_factory("a.py", functions=[f1], classes=[c1])
         a2 = mock_analysis_factory("b.py", functions=[f1], classes=[c1])
-        
+
         # Should be 1.0 (perfect match on counts and names)
         score = calculate_similarity(a1, a2)
         assert score == 1.0
@@ -89,10 +88,10 @@ class TestDuplicatesPriority:
         """Test similarity for completely different files."""
         f1 = FunctionInfo("foo", 1, 10, 10)
         f2 = FunctionInfo("bar", 1, 10, 10)
-        
+
         a1 = mock_analysis_factory("a.py", code_lines=100, functions=[f1])
         a2 = mock_analysis_factory("b.py", code_lines=10, functions=[f2])
-        
+
         score = calculate_similarity(a1, a2)
         # Line sim: 10/100 = 0.1 * 0.3 weight = 0.03
         # Func sim: 0 * 0.5 = 0
@@ -105,23 +104,23 @@ class TestDuplicatesPriority:
         f_shared = FunctionInfo("shared", 1, 10, 10)
         c_shared = ClassInfo("SharedClass", 1, 10, 1)
         f_unique = FunctionInfo("unique", 1, 10, 10)
-        
+
         a1 = mock_analysis_factory("a.py", code_lines=100, functions=[f_shared], classes=[c_shared])
         a2 = mock_analysis_factory("b.py", code_lines=100, functions=[f_shared], classes=[c_shared])
         a3 = mock_analysis_factory("c.py", code_lines=10, functions=[f_unique]) # Disjoint
 
         analyses = [a1, a2, a3]
-        
+
         # High threshold should only find a1-a2 (identical logic above)
         groups = find_near_duplicates(analyses, threshold=0.9)
         assert len(groups) == 1
         assert set(groups[0].files) == {"a.py", "b.py"}
-    
+
     def test_find_near_duplicates_ignore_small_files(self, mock_analysis_factory):
         """Small files should be ignored."""
         a1 = mock_analysis_factory("small1.py", code_lines=5)
         a2 = mock_analysis_factory("small2.py", code_lines=5)
-        
+
         groups = find_near_duplicates([a1, a2])
         assert len(groups) == 0
 
@@ -133,7 +132,7 @@ class TestTerminalReportPriority:
     def test_print_terminal_report_rich_calls(self, mock_console, mock_metrics):
         """Verify calls to rich operations."""
         print_terminal_report_rich(mock_metrics, "0.1.0")
-        
+
         # Check that console.print was called multiple times
         assert mock_console.return_value.print.call_count > 5
 
@@ -147,7 +146,7 @@ class TestCliPriority:
         """Run scan with invalid path should return error code."""
         mock_args = MagicMock()
         mock_args.path = "/nonexistent/path/12345"
-        
+
         ret = run_scan(mock_args)
         assert ret == 1
         # scan_codebase should not be called if path validation fails early
@@ -166,19 +165,19 @@ class TestCliPriority:
         mock_args.all = False
         mock_args.quiet = False
         mock_args.json = False
-        
+
         # Ensure path is valid before proceeding (simulating defensive coding)
         if not mock_args.path:
             pytest.fail("Invalid test configuration: path is required")
 
         # 2. Simulate User Interrupt
         mock_perform.side_effect = KeyboardInterrupt()
-        
+
         # 3. Try/Except Block Verification
         # We verify that run_scan catches the interrupt and handles it safely
         with patch("pathlib.Path.exists", return_value=True), \
              patch("pathlib.Path.is_dir", return_value=True):
-            
+
             try:
                 ret = run_scan(mock_args)
             except Exception as e:
@@ -188,7 +187,7 @@ class TestCliPriority:
         # Check if the CLI logged the interruption (mock_log_error checks)
         # Note: cli.py usually prints to stderr, but we check if logging was possibly triggered
         # or just ensure exit code is correct.
-        
+
         # 5. Proper error response codes
         assert ret == 130, f"Expected exit code 130 for keyboard interrupt, got {ret}"
 
@@ -207,5 +206,5 @@ class TestFixerPriority:
         )
         fixer = FixerEngine(".")
         md = fixer.render_markdown(plan)
-        
+
         assert "Great job!" in md or "No critical issues" in md or len(md) > 0

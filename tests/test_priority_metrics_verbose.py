@@ -3,20 +3,14 @@ Verbose tests for metrics.py focusing on health score calculation permutations.
 Targeting high line count and exhaustive coverage.
 """
 import pytest
+
+from revibe.duplicates import DuplicateGroup
 from revibe.metrics import (
     CodebaseMetrics,
     calculate_health_score,
     determine_risk_level,
-    RISK_LEVEL_LOW,
-    RISK_LEVEL_MODERATE,
-    RISK_LEVEL_ELEVATED,
-    RISK_LEVEL_HIGH,
-    TEST_RATIO_EXCELLENT,
-    TEST_RATIO_GOOD,
-    TEST_RATIO_POOR,
-    TEST_RATIO_CRITICAL,
 )
-from revibe.duplicates import DuplicateGroup
+
 
 @pytest.fixture
 def base_metrics():
@@ -66,7 +60,7 @@ class TestHealthScorePermutations:
         # Zero/Low coverage (< 0.1) -> -40
         base_metrics.test_to_code_ratio = 0.05
         assert calculate_health_score(base_metrics) == 60
-        
+
         base_metrics.test_to_code_ratio = 0.0
         assert calculate_health_score(base_metrics) == 60
 
@@ -175,8 +169,8 @@ class TestHealthScorePermutations:
         # Density: (classes / lines) * 1000
         # Threshold is defined in constants. Let's check logic.
         # If density > OVER_ENGINEERING_CLASS_DENSITY (likely 10 or 20?)
-        
-        # Let's try high density. 
+
+        # Let's try high density.
         # Source LOC = 100. Classes = 10. Density = 100.
         base_metrics.source_loc = 100
         base_metrics.total_classes = 10
@@ -196,7 +190,7 @@ class TestHealthScorePermutations:
         """Test worst possible score (0)."""
         # Coverage: 0 -> -40
         base_metrics.test_to_code_ratio = 0.0
-        
+
         # Smells: Max -> -20
         base_metrics.ai_smell_scores = {f"s{i}": 1.0 for i in range(10)}
 
@@ -237,19 +231,19 @@ class TestRiskLevelDetermination:
         # LOW (>= 80)
         assert determine_risk_level(100) == "LOW"
         assert determine_risk_level(80) == "LOW"
-        
+
         # MODERATE (60-79)
         assert determine_risk_level(79) == "MODERATE"
         assert determine_risk_level(60) == "MODERATE"
-        
+
         # ELEVATED (40-59)
         assert determine_risk_level(59) == "ELEVATED"
         assert determine_risk_level(40) == "ELEVATED"
-        
+
         # HIGH (20-39)
         assert determine_risk_level(39) == "HIGH"
         assert determine_risk_level(20) == "HIGH"
-        
+
         # CRITICAL (< 20)
         assert determine_risk_level(19) == "CRITICAL"
         assert determine_risk_level(0) == "CRITICAL"

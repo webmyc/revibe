@@ -1,10 +1,10 @@
 """Regex patterns for Revibe analysis."""
 
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 # Function detection patterns by language
-FUNCTION_PATTERNS: Dict[str, List[re.Pattern]] = {
+FUNCTION_PATTERNS: dict[str, list[re.Pattern]] = {
     "Python": [
         re.compile(r"^\s*def\s+(\w+)\s*\("),
         re.compile(r"^\s*async\s+def\s+(\w+)\s*\("),
@@ -54,7 +54,7 @@ FUNCTION_PATTERNS: Dict[str, List[re.Pattern]] = {
 }
 
 # Class detection patterns by language
-CLASS_PATTERNS: Dict[str, List[re.Pattern]] = {
+CLASS_PATTERNS: dict[str, list[re.Pattern]] = {
     "Python": [re.compile(r"^\s*class\s+(\w+)")],
     "JavaScript": [re.compile(r"^\s*class\s+(\w+)")],
     "TypeScript": [re.compile(r"^\s*(?:export\s+)?(?:abstract\s+)?class\s+(\w+)")],
@@ -70,7 +70,7 @@ CLASS_PATTERNS: Dict[str, List[re.Pattern]] = {
 }
 
 # Import patterns by language
-IMPORT_PATTERNS: Dict[str, List[re.Pattern]] = {
+IMPORT_PATTERNS: dict[str, list[re.Pattern]] = {
     "Python": [
         re.compile(r"^\s*import\s+(\S+)"),
         re.compile(r"^\s*from\s+(\S+)\s+import"),
@@ -95,7 +95,7 @@ IMPORT_PATTERNS: Dict[str, List[re.Pattern]] = {
 
 # Comment patterns by language
 # (single_line_prefix, (multi_start, multi_end) or None)
-COMMENT_PATTERNS: Dict[str, Tuple[str, Optional[Tuple[str, str]]]] = {
+COMMENT_PATTERNS: dict[str, tuple[str, Optional[tuple[str, str]]]] = {
     "Python": ("#", ('"""', '"""')),
     "JavaScript": ("//", ("/*", "*/")),
     "TypeScript": ("//", ("/*", "*/")),
@@ -114,7 +114,7 @@ COMMENT_PATTERNS: Dict[str, Tuple[str, Optional[Tuple[str, str]]]] = {
 }
 
 # Error handling patterns
-ERROR_HANDLING_PATTERNS: Dict[str, List[re.Pattern]] = {
+ERROR_HANDLING_PATTERNS: dict[str, list[re.Pattern]] = {
     "Python": [re.compile(r"^\s*try\s*:"), re.compile(r"^\s*except\s*")],
     "JavaScript": [re.compile(r"^\s*try\s*{"), re.compile(r"\.catch\s*\(")],
     "TypeScript": [re.compile(r"^\s*try\s*{"), re.compile(r"\.catch\s*\(")],

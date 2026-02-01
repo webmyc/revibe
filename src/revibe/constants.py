@@ -1,12 +1,11 @@
 """Constants and configuration for Revibe scanner."""
 
-from typing import Dict, FrozenSet, List, Set
 
 # =============================================================================
 # LANGUAGE EXTENSION MAP
 # =============================================================================
 
-LANGUAGE_EXTENSIONS: Dict[str, str] = {
+LANGUAGE_EXTENSIONS: dict[str, str] = {
     # Python
     ".py": "Python",
     ".pyw": "Python",
@@ -115,7 +114,7 @@ LANGUAGE_EXTENSIONS: Dict[str, str] = {
 # =============================================================================
 
 # Directories that typically contain tests
-TEST_DIRECTORIES: FrozenSet[str] = frozenset({
+TEST_DIRECTORIES: frozenset[str] = frozenset({
     "test",
     "tests",
     "spec",
@@ -128,7 +127,7 @@ TEST_DIRECTORIES: FrozenSet[str] = frozenset({
 })
 
 # File name patterns that indicate test files
-TEST_FILE_PATTERNS: List[str] = [
+TEST_FILE_PATTERNS: list[str] = [
     "test_",
     "_test.",
     ".test.",
@@ -145,7 +144,7 @@ TEST_FILE_PATTERNS: List[str] = [
 # =============================================================================
 
 # Directories to ignore during scanning
-IGNORE_DIRECTORIES: FrozenSet[str] = frozenset({
+IGNORE_DIRECTORIES: frozenset[str] = frozenset({
     # Version control
     ".git",
     ".svn",
@@ -216,7 +215,7 @@ IGNORE_DIRECTORIES: FrozenSet[str] = frozenset({
 })
 
 # File patterns to ignore
-IGNORE_FILE_PATTERNS: FrozenSet[str] = frozenset({
+IGNORE_FILE_PATTERNS: frozenset[str] = frozenset({
     ".min.js",
     ".min.css",
     ".bundle.js",
@@ -290,7 +289,7 @@ COPY_PASTE_MIN_OCCURRENCES = 5
 # =============================================================================
 
 # Patterns that indicate routes/endpoints/features
-FEATURE_PATTERNS: Dict[str, List[str]] = {
+FEATURE_PATTERNS: dict[str, list[str]] = {
     "Python": [
         r"@app\.route\(",
         r"@router\.\w+\(",
@@ -341,7 +340,7 @@ FEATURE_PATTERNS: Dict[str, List[str]] = {
 # =============================================================================
 
 # Function names that should have error handling
-SENSITIVE_FUNCTION_PATTERNS: List[str] = [
+SENSITIVE_FUNCTION_PATTERNS: list[str] = [
     "payment",
     "pay_",
     "_pay",

@@ -2,12 +2,15 @@
 Verbose tests for duplicates.py focusing on near-duplicate detection logic.
 Targeting high line count and complex scenarios.
 """
-import pytest
-from unittest.mock import MagicMock
-from revibe.duplicates import find_near_duplicates, DuplicateGroup, calculate_similarity
-from revibe.analyzer import FileAnalysis, FunctionInfo, ClassInfo
-from revibe.scanner import SourceFile
 from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
+
+from revibe.analyzer import ClassInfo, FileAnalysis, FunctionInfo
+from revibe.duplicates import calculate_similarity, find_near_duplicates
+from revibe.scanner import SourceFile
+
 
 @pytest.fixture
 def clean_analyses():
@@ -23,7 +26,7 @@ def clean_analyses():
         # Mock path behavior for uniqueness checks if needed, but calculate_similarity uses objects
         sf.path = MagicMock()
         sf.path.name = name
-        
+
         fa = FileAnalysis(
             source_file=sf,
             total_lines=10,
@@ -40,11 +43,11 @@ class TestDuplicatesVerbose:
         a1 = FileAnalysis(SourceFile(Path("1"), "1", "Py", False, 100), 100, 100)
         a1.functions = [FunctionInfo("foo", 1, 10, 10)]
         a1.classes = [ClassInfo("Bar", 1, 10, 10)]
-        
+
         a2 = FileAnalysis(SourceFile(Path("2"), "2", "Py", False, 100), 100, 100)
         a2.functions = [FunctionInfo("foo", 1, 10, 10)]
         a2.classes = [ClassInfo("Bar", 1, 10, 10)]
-        
+
         # Expect 1.0 because lines match, functions match, classes match
         assert calculate_similarity(a1, a2) == 1.0
 
@@ -52,14 +55,14 @@ class TestDuplicatesVerbose:
         """Test similarity of disjoint files."""
         a1 = FileAnalysis(SourceFile(Path("1"), "1", "Py", False, 100), 100, 100)
         a1.functions = [FunctionInfo("foo", 1, 10, 10)]
-        
+
         a2 = FileAnalysis(SourceFile(Path("2"), "2", "Py", False, 200), 200, 200) # Different lines
         a2.functions = [FunctionInfo("bar", 1, 10, 10)] # Different func
-        
+
         # Line sim: 100/200 = 0.5. Weighted 0.3 -> 0.15
         # Func sim: 0. Weighted 0.5 -> 0
         # Class sim: 0 (empty). Weighted 0.2 -> 0?
-        
+
         sim = calculate_similarity(a1, a2)
         # Expected: ~0.15
         assert 0.1 <= sim <= 0.2
@@ -68,15 +71,15 @@ class TestDuplicatesVerbose:
         """Test partial overlap."""
         a1 = FileAnalysis(SourceFile(Path("1"), "1", "Py", False, 100), 100, 100)
         a1.functions = [FunctionInfo("shared", 1, 10, 10), FunctionInfo("unique1", 1, 10, 10)]
-        
+
         a2 = FileAnalysis(SourceFile(Path("2"), "2", "Py", False, 100), 100, 100)
         a2.functions = [FunctionInfo("shared", 1, 10, 10), FunctionInfo("unique2", 1, 10, 10)]
-        
+
         # Line sim: 1.0 -> 0.3
         # Func sim: intersection(1) / union(3) = 0.33. Weighted 0.5 -> ~0.165
         # Class sim: 0.
         # Total: 0.3 + 0.165 + 0 = 0.465
-        
+
         sim = calculate_similarity(a1, a2)
         assert 0.4 <= sim <= 0.5
 
@@ -103,7 +106,7 @@ class TestDuplicatesVerbose:
         a1.functions = [FunctionInfo("f",1,1,1)]
         a2 = FileAnalysis(SourceFile(Path("b.py"), "b.py", "Py", False, 100), 100, 100)
         a2.functions = [FunctionInfo("f",1,1,1)]
-        
+
         results = find_near_duplicates([a1, a2], threshold=0.7)
         assert len(results) == 1
         assert results[0].similarity > 0.7
@@ -112,6 +115,6 @@ class TestDuplicatesVerbose:
         """Test ignoring files with few lines."""
         a1 = FileAnalysis(SourceFile(Path("1"), "1", "Py", False, 10), 5, 5) # < 10 lines
         a2 = FileAnalysis(SourceFile(Path("2"), "2", "Py", False, 10), 5, 5)
-        
+
         results = find_near_duplicates([a1, a2])
         assert len(results) == 0

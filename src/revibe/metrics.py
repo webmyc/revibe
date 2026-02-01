@@ -2,7 +2,7 @@
 
 import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 from revibe.analyzer import FileAnalysis, FunctionInfo
 from revibe.constants import (
@@ -27,7 +27,7 @@ from revibe.scanner import SourceFile
 class DuplicateGroup:
     """A group of duplicate or near-duplicate files."""
 
-    files: List[str]  # relative paths
+    files: list[str]  # relative paths
     is_exact: bool
     similarity: float = 1.0
 
@@ -55,19 +55,19 @@ class CodebaseMetrics:
     total_imports: int = 0
 
     # Issues
-    todos: List[Tuple[str, int, str]] = field(default_factory=list)  # (file, line, content)
-    duplicate_groups: List[DuplicateGroup] = field(default_factory=list)
+    todos: list[tuple[str, int, str]] = field(default_factory=list)  # (file, line, content)
+    duplicate_groups: list[DuplicateGroup] = field(default_factory=list)
 
     # Functions requiring attention
-    long_functions: List[Tuple[str, FunctionInfo]] = field(default_factory=list)  # (file, func)
-    sensitive_functions_without_error_handling: List[Tuple[str, FunctionInfo]] = field(default_factory=list)
-    functions_by_file: Dict[str, List[FunctionInfo]] = field(default_factory=dict)
+    long_functions: list[tuple[str, FunctionInfo]] = field(default_factory=list)  # (file, func)
+    sensitive_functions_without_error_handling: list[tuple[str, FunctionInfo]] = field(default_factory=list)
+    functions_by_file: dict[str, list[FunctionInfo]] = field(default_factory=dict)
 
     # Language breakdown
-    languages: Dict[str, Dict[str, int]] = field(default_factory=dict)
+    languages: dict[str, dict[str, int]] = field(default_factory=dict)
 
     # Smell scores (0.0 - 1.0)
-    ai_smell_scores: Dict[str, float] = field(default_factory=dict)
+    ai_smell_scores: dict[str, float] = field(default_factory=dict)
 
     # Features detected
     feature_count: int = 0
@@ -80,7 +80,7 @@ class CodebaseMetrics:
     risk_level: str = "UNKNOWN"
 
     # Raw file analyses for fixer
-    file_analyses: List[FileAnalysis] = field(default_factory=list)
+    file_analyses: list[FileAnalysis] = field(default_factory=list)
 
     @property
     def feature_interactions(self) -> int:
@@ -93,11 +93,11 @@ class CodebaseMetrics:
         return (2 ** n) - 1 - n
 
     @property
-    def all_todos(self) -> List[Tuple[str, int, str]]:
+    def all_todos(self) -> list[tuple[str, int, str]]:
         """Get all TODOs across the codebase."""
         return self.todos
 
-    def summary(self) -> Dict:
+    def summary(self) -> dict:
         """Get a summary dictionary for reporting."""
         return {
             "total_files": self.total_files,
@@ -125,7 +125,7 @@ def calculate_defect_estimate(
     source_loc: int,
     ai_generated: bool = True,
     base_density: float = DEFECT_DENSITY_HUMAN_MID,
-) -> Tuple[float, int]:
+) -> tuple[float, int]:
     """
     Estimate number of defects based on lines of code.
 
@@ -145,7 +145,7 @@ def calculate_defect_estimate(
     return density, estimated
 
 
-def detect_features(analyses: List[FileAnalysis]) -> int:
+def detect_features(analyses: list[FileAnalysis]) -> int:
     """
     Detect the number of features/routes/endpoints in the codebase.
 
@@ -254,10 +254,10 @@ def determine_risk_level(health_score: int) -> str:
 
 
 def aggregate_metrics(
-    source_files: List[SourceFile],
-    analyses: List[FileAnalysis],
-    smell_scores: Optional[Dict[str, float]] = None,
-    duplicate_groups: Optional[List[DuplicateGroup]] = None,
+    source_files: list[SourceFile],
+    analyses: list[FileAnalysis],
+    smell_scores: Optional[dict[str, float]] = None,
+    duplicate_groups: Optional[list[DuplicateGroup]] = None,
 ) -> CodebaseMetrics:
     """
     Aggregate all analyses into codebase-wide metrics.
@@ -276,10 +276,10 @@ def aggregate_metrics(
     metrics.total_files = len(source_files)
     metrics.ai_smell_scores = smell_scores or {}
     metrics.duplicate_groups = duplicate_groups or []
-    
+
     # Calculate file counts and per-file aggregations
     _aggregate_file_stats(metrics, source_files)
-    
+
     # Aggregate deep analysis data
     _aggregate_analysis_data(metrics, analyses)
 
@@ -292,11 +292,11 @@ def aggregate_metrics(
     return metrics
 
 
-def _aggregate_file_stats(metrics: CodebaseMetrics, source_files: List[SourceFile]):
+def _aggregate_file_stats(metrics: CodebaseMetrics, source_files: list[SourceFile]):
     """Calculate basic file counts and language stats."""
     metrics.source_files = sum(1 for f in source_files if not f.is_test)
     metrics.test_files = sum(1 for f in source_files if f.is_test)
-    
+
     for f in source_files:
         if f.language not in metrics.languages:
             metrics.languages[f.language] = {"files": 0, "lines": 0, "test_files": 0}
@@ -305,7 +305,7 @@ def _aggregate_file_stats(metrics: CodebaseMetrics, source_files: List[SourceFil
             metrics.languages[f.language]["test_files"] += 1
 
 
-def _aggregate_analysis_data(metrics: CodebaseMetrics, analyses: List[FileAnalysis]):
+def _aggregate_analysis_data(metrics: CodebaseMetrics, analyses: list[FileAnalysis]):
     """Aggregate data from detailed file analyses."""
     for analysis in analyses:
         is_test = analysis.source_file.is_test
@@ -332,7 +332,7 @@ def _aggregate_analysis_data(metrics: CodebaseMetrics, analyses: List[FileAnalys
 
         # Issues
         _collect_issues(metrics, analysis)
-        
+
         # Store for fixer
         metrics.functions_by_file[analysis.source_file.relative_path] = analysis.functions
 

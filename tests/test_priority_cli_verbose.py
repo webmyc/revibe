@@ -3,14 +3,12 @@ Verbose tests for revibe.cli module.
 Focusing on argument parsing, main execution flow, and flag permutations.
 Targeting high line count and edge case coverage.
 """
-import sys
-import pytest
-from unittest.mock import MagicMock, patch, ANY
-from pathlib import Path
-import argparse
+from unittest.mock import MagicMock, patch
 
-from revibe import cli
-from revibe.cli import main, run_scan, create_parser
+import pytest
+
+from revibe.cli import create_parser, main, run_scan
+
 
 @pytest.fixture
 def mock_args():
@@ -49,8 +47,8 @@ class TestArgParser:
         """Test parser with all flags enabled."""
         parser = create_parser()
         cmd = [
-            "scan", 
-            "/tmp", 
+            "scan",
+            "/tmp",
             "--output", "out",
             "--ignore", "node_modules,dist",
             "--all",
@@ -95,9 +93,9 @@ class TestRunScanVerbose:
         """Test run_scan with non-existent path."""
         mock_exists.return_value = False
         mock_args.path = "/invalid/path"
-        
+
         ret = run_scan(mock_args)
-        
+
         assert ret == 1
         captured = capsys.readouterr()
         assert "Path does not exist" in captured.err
@@ -110,9 +108,9 @@ class TestRunScanVerbose:
         mock_exists.return_value = True
         mock_is_dir.return_value = False
         mock_args.path = "file.txt"
-        
+
         ret = run_scan(mock_args)
-        
+
         assert ret == 1
         captured = capsys.readouterr()
         assert "Path is not a directory" in captured.err
@@ -120,27 +118,27 @@ class TestRunScanVerbose:
     @patch("revibe.cli._perform_scan")
     @patch("pathlib.Path.exists", return_value=True)
     @patch("pathlib.Path.is_dir", return_value=True)
-    @patch("pathlib.Path.mkdir") 
+    @patch("pathlib.Path.mkdir")
     def test_run_scan_expand_all_flag(self, mock_mkdir, mock_is_dir, mock_exists, mock_perform, mock_args):
         """Test that --all flag enables other output flags."""
         mock_args.all = True
         # Initial False state
         mock_args.html = False
         mock_args.fix = False
-        
+
         # Setup successful scan result
         mock_result = MagicMock()
         mock_perform.return_value = mock_result
-        
+
         # We need to mock report generation functions to avoid actual errors/prints
         with patch("revibe.cli.print_terminal_report"), \
              patch("revibe.cli.generate_json_report"), \
              patch("revibe.cli.generate_html_report"), \
              patch("revibe.cli._generate_fix_files"), \
              patch("pathlib.Path.write_text"):
-             
+
             run_scan(mock_args)
-            
+
             # Verify flags were flipped
             assert mock_args.html is True
             assert mock_args.fix is True
@@ -155,10 +153,10 @@ class TestRunScanVerbose:
         """Test output directory is created."""
         mock_args.output = "custom_out"
         mock_perform.return_value = MagicMock()
-        
+
         with patch("revibe.cli.print_terminal_report"):
             run_scan(mock_args)
-            
+
         mock_mkdir.assert_called_with(parents=True, exist_ok=True)
 
     @patch("revibe.cli._perform_scan")
@@ -189,9 +187,9 @@ class TestMainEntryPoint:
         mock_args = MagicMock()
         mock_args.command = None
         mock_parser.parse_args.return_value = mock_args
-        
+
         ret = main(["arg"])
-        
+
         assert ret == 0
         mock_parser.print_help.assert_called_once()
 
@@ -203,9 +201,9 @@ class TestMainEntryPoint:
         mock_args = MagicMock()
         mock_args.command = "unknown"
         mock_parser.parse_args.return_value = mock_args
-        
+
         ret = main(["unknown"])
-        
+
         assert ret == 1
         mock_parser.print_help.assert_called_once()
 
@@ -218,7 +216,7 @@ def test_run_scan_exception_handling_verbose(mock_stderr, mock_is_dir, mock_exis
     """Test exception handling with and without debug mode."""
     # Setup exception
     mock_perform.side_effect = Exception("Boom")
-    
+
     # 1. Normal mode (no traceback)
     with patch("os.environ.get", return_value=None):
         ret = run_scan(mock_args)

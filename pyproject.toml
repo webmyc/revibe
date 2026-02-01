@@ -42,7 +42,7 @@ Issues = "https://github.com/webmyc/revibe/issues"
 packages = ["src/revibe"]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py39"
 
 [tool.ruff.lint]

@@ -1,9 +1,7 @@
 """Terminal report output for Revibe (with optional rich support)."""
 
-from typing import Optional
 
 from revibe.metrics import CodebaseMetrics
-
 
 # Try to import rich for pretty output
 try:

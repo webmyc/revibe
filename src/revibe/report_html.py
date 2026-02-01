@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from html import escape
-from typing import List, Optional
+from typing import Optional
 
 from revibe import __version__
 from revibe.fixer import FixPlan, generate_fix_plan
@@ -94,9 +94,9 @@ def generate_html_report(
 def _get_styles() -> str:
     """Get CSS styles for the report."""
     return (
-        _get_base_styles() + 
-        _get_layout_styles() + 
-        _get_component_styles() + 
+        _get_base_styles() +
+        _get_layout_styles() +
+        _get_component_styles() +
         _get_print_styles()
     )
 
@@ -311,7 +311,9 @@ def _get_score_styles() -> str:
 .score-low { background: conic-gradient(var(--success) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); }
 .score-moderate { background: conic-gradient(var(--warning) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); }
 .score-elevated { background: conic-gradient(var(--elevated) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); }
-.score-high, .score-critical { background: conic-gradient(var(--danger) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); }
+.score-high, .score-critical { 
+    background: conic-gradient(var(--danger) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); 
+}
 '''
 
 

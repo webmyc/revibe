@@ -5,7 +5,7 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from revibe import __version__
 from revibe.analyzer import FileAnalysis, analyze_files
@@ -14,8 +14,6 @@ from revibe.fixer import FixerEngine, generate_fix_plan
 from revibe.metrics import CodebaseMetrics, aggregate_metrics
 from revibe.report_html import generate_html_report
 from revibe.report_json import generate_json_report
-
-
 from revibe.report_terminal import print_terminal_report
 from revibe.scanner import SourceFile, scan_codebase
 from revibe.smells import detect_all_smells
@@ -25,10 +23,10 @@ from revibe.smells import detect_all_smells
 class ScanResult:
     """Results from scanning a codebase."""
 
-    source_files: List[SourceFile]
-    analyses: List[FileAnalysis]
+    source_files: list[SourceFile]
+    analyses: list[FileAnalysis]
     smell_scores: dict
-    duplicates: List[DuplicateGroup]
+    duplicates: list[DuplicateGroup]
     metrics: CodebaseMetrics
 
 
@@ -72,14 +70,40 @@ def _add_scan_arguments(parser: argparse.ArgumentParser) -> None:
     output_group = parser.add_argument_group("Output formats")
     output_group.add_argument("--html", action="store_true", help="Generate an HTML report")
     output_group.add_argument("--json", action="store_true", help="Output results as JSON to stdout")
-    output_group.add_argument("--fix", action="store_true", help="Generate REVIBE_FIXES.md with copy-paste AI fix instructions")
-    output_group.add_argument("--cursor", action="store_true", help="Generate .cursorrules file with fix priorities")
-    output_group.add_argument("--claude", action="store_true", help="Generate CLAUDE.md section with health notes")
-    output_group.add_argument("--all", action="store_true", help="Generate all output formats (HTML + JSON + fix files)")
+    output_group.add_argument(
+        "--fix", 
+        action="store_true", 
+        help="Generate REVIBE_FIXES.md with copy-paste AI fix instructions"
+    )
+    output_group.add_argument(
+        "--cursor", 
+        action="store_true", 
+        help="Generate .cursorrules file with fix priorities"
+    )
+    output_group.add_argument(
+        "--claude", 
+        action="store_true", 
+        help="Generate CLAUDE.md section with health notes"
+    )
+    output_group.add_argument(
+        "--all", 
+        action="store_true", 
+        help="Generate all output formats (HTML + JSON + fix files)"
+    )
 
     # Other options
-    parser.add_argument("--output", "-o", type=str, metavar="DIR", help="Output directory for generated files (default: codebase root)")
-    parser.add_argument("--ignore", type=str, metavar="DIRS", help="Comma-separated list of additional directories to ignore")
+    parser.add_argument(
+        "--output", "-o", 
+        type=str, 
+        metavar="DIR", 
+        help="Output directory for generated files (default: codebase root)"
+    )
+    parser.add_argument(
+        "--ignore", 
+        type=str, 
+        metavar="DIRS", 
+        help="Comma-separated list of additional directories to ignore"
+    )
     parser.add_argument("--quiet", "-q", action="store_true", help="Suppress terminal output (useful with --json)")
     parser.add_argument("--no-color", action="store_true", help="Disable colored output")
 
@@ -90,7 +114,7 @@ def _log(message: str, quiet: bool, json_mode: bool) -> None:
         print(message)
 
 
-def _perform_scan(path: Path, additional_ignores: Optional[List[str]], quiet: bool, json_mode: bool) -> Optional[ScanResult]:
+def _perform_scan(path: Path, additional_ignores: Optional[list[str]], quiet: bool, json_mode: bool) -> Optional[ScanResult]:
     """Perform the codebase scan and analysis."""
     _log("  Discovering files...", quiet, json_mode)
     source_files = scan_codebase(str(path), additional_ignores)
@@ -100,7 +124,7 @@ def _perform_scan(path: Path, additional_ignores: Optional[List[str]], quiet: bo
             print("  ⚠️ No source files found in this directory.")
         return None
 
-    langs = set(f.language for f in source_files)
+    langs = {f.language for f in source_files}
     _log(f"  Found {len(source_files)} files across {len(langs)} languages", quiet, json_mode)
 
     _log("  Analyzing files...", quiet, json_mode)
@@ -234,7 +258,7 @@ def run_scan(args: argparse.Namespace) -> int:
         return 1
 
 
-def main(argv: Optional[List[str]] = None) -> int:
+def main(argv: Optional[list[str]] = None) -> int:
     """Main entry point for the CLI."""
     parser = create_parser()
     args = parser.parse_args(argv)

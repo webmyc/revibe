@@ -1,8 +1,7 @@
 """Tests for duplicate detection."""
 
-import pytest
 
-from revibe.duplicates import DuplicateGroup, find_all_duplicates, find_exact_duplicates
+from revibe.duplicates import DuplicateGroup, find_all_duplicates
 
 
 class TestExactDuplicates:
