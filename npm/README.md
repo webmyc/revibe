@@ -47,4 +47,4 @@ revibe scan ./project --all
 
 - Website: [revibe.help](https://revibe.help)
 - PyPI: [pypi.org/project/revibe](https://pypi.org/project/revibe/)
-- GitHub: [github.com/AK-Issac/revibe](https://github.com/AK-Issac/revibe)
+- GitHub: [github.com/webmyc/revibe](https://github.com/webmyc/revibe)

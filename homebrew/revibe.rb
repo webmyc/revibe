@@ -1,11 +1,11 @@
 # Homebrew formula for Revibe
 # 
 # To use this formula, create a tap repository:
-#   1. Create repo: github.com/AK-Issac/homebrew-revibe
+#   1. Create repo: github.com/webmyc/homebrew-revibe
 #   2. Add this file as: Formula/revibe.rb
 #
 # Users can then install with:
-#   brew tap AK-Issac/revibe
+#   brew tap webmyc/revibe
 #   brew install revibe
 
 class Revibe < Formula
@@ -14,7 +14,9 @@ class Revibe < Formula
   desc "Codebase health scanner + AI-powered fixer for vibe-coded projects"
   homepage "https://revibe.help"
   url "https://files.pythonhosted.org/packages/source/r/revibe/revibe-0.1.0.tar.gz"
-  sha256 "REPLACE_WITH_ACTUAL_SHA256_AFTER_PUBLISHING"
+  # TODO: Update sha256 after publishing v0.1.0 to PyPI
+  # Run: curl -sL https://files.pythonhosted.org/packages/source/r/revibe/revibe-0.1.0.tar.gz | shasum -a 256
+  sha256 "PLACEHOLDER_UPDATE_AFTER_PYPI_RELEASE"
   license "MIT"
 
   depends_on "python@3.12"

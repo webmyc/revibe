@@ -58,7 +58,13 @@ def is_test_file(path: Path, relative_path: str) -> bool:
 def should_ignore_directory(name: str) -> bool:
     """Check if a directory should be ignored."""
     name_lower = name.lower()
-    return name_lower in IGNORE_DIRECTORIES or name.startswith(".")
+    # Check explicit ignore list
+    if name_lower in IGNORE_DIRECTORIES or name.startswith("."):
+        return True
+    # Handle glob-style patterns like *.egg-info
+    if name_lower.endswith(".egg-info"):
+        return True
+    return False
 
 
 def should_ignore_file(path: Path) -> bool:

@@ -34,9 +34,9 @@ revibe = "revibe.cli:main"
 
 [project.urls]
 Homepage = "https://revibe.help"
-Repository = "https://github.com/AK-Issac/revibe"
+Repository = "https://github.com/webmyc/revibe"
 Documentation = "https://revibe.help"
-Issues = "https://github.com/AK-Issac/revibe/issues"
+Issues = "https://github.com/webmyc/revibe/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/revibe"]

@@ -22,11 +22,11 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/AK-Issac/revibe.git"
+        "url": "https://github.com/webmyc/revibe.git"
     },
     "homepage": "https://revibe.help",
     "bugs": {
-        "url": "https://github.com/AK-Issac/revibe/issues"
+        "url": "https://github.com/webmyc/revibe/issues"
     },
     "engines": {
         "node": ">=16"

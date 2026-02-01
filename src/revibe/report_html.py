@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from html import escape
-from typing import List
+from typing import List, Optional
 
 from revibe import __version__
 from revibe.fixer import FixPlan, generate_fix_plan
@@ -13,7 +13,7 @@ from revibe.smells import get_smell_descriptions
 def generate_html_report(
     metrics: CodebaseMetrics,
     codebase_path: str,
-    fix_plan: FixPlan | None = None,
+    fix_plan: Optional[FixPlan] = None,
 ) -> str:
     """
     Generate a self-contained HTML report.

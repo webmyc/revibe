@@ -3,19 +3,31 @@
 import argparse
 import os
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
 from revibe import __version__
-from revibe.analyzer import analyze_files
-from revibe.duplicates import find_all_duplicates
+from revibe.analyzer import FileAnalysis, analyze_files
+from revibe.duplicates import DuplicateGroup, find_all_duplicates
 from revibe.fixer import FixerEngine, generate_fix_plan
-from revibe.metrics import aggregate_metrics
+from revibe.metrics import CodebaseMetrics, aggregate_metrics
 from revibe.report_html import generate_html_report
 from revibe.report_json import render_json_report
 from revibe.report_terminal import print_terminal_report
-from revibe.scanner import scan_codebase
+from revibe.scanner import SourceFile, scan_codebase
 from revibe.smells import detect_all_smells
+
+
+@dataclass
+class ScanResult:
+    """Results from scanning a codebase."""
+
+    source_files: List[SourceFile]
+    analyses: List[FileAnalysis]
+    smell_scores: dict
+    duplicates: List[DuplicateGroup]
+    metrics: CodebaseMetrics
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -41,7 +53,13 @@ def create_parser() -> argparse.ArgumentParser:
         description="Scan a codebase and generate health reports with fix instructions",
     )
 
-    scan_parser.add_argument(
+    _add_scan_arguments(scan_parser)
+    return parser
+
+
+def _add_scan_arguments(parser: argparse.ArgumentParser) -> None:
+    """Add arguments for the scan command."""
+    parser.add_argument(
         "path",
         nargs="?",
         default=".",
@@ -49,69 +67,95 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     # Output format options
-    output_group = scan_parser.add_argument_group("Output formats")
-    output_group.add_argument(
-        "--html",
-        action="store_true",
-        help="Generate an HTML report",
-    )
-    output_group.add_argument(
-        "--json",
-        action="store_true",
-        help="Output results as JSON to stdout",
-    )
-    output_group.add_argument(
-        "--fix",
-        action="store_true",
-        help="Generate REVIBE_FIXES.md with copy-paste AI fix instructions",
-    )
-    output_group.add_argument(
-        "--cursor",
-        action="store_true",
-        help="Generate .cursorrules file with fix priorities",
-    )
-    output_group.add_argument(
-        "--claude",
-        action="store_true",
-        help="Generate CLAUDE.md section with health notes",
-    )
-    output_group.add_argument(
-        "--all",
-        action="store_true",
-        help="Generate all output formats (HTML + JSON + fix files)",
-    )
+    output_group = parser.add_argument_group("Output formats")
+    output_group.add_argument("--html", action="store_true", help="Generate an HTML report")
+    output_group.add_argument("--json", action="store_true", help="Output results as JSON to stdout")
+    output_group.add_argument("--fix", action="store_true", help="Generate REVIBE_FIXES.md with copy-paste AI fix instructions")
+    output_group.add_argument("--cursor", action="store_true", help="Generate .cursorrules file with fix priorities")
+    output_group.add_argument("--claude", action="store_true", help="Generate CLAUDE.md section with health notes")
+    output_group.add_argument("--all", action="store_true", help="Generate all output formats (HTML + JSON + fix files)")
 
     # Other options
-    scan_parser.add_argument(
-        "--output", "-o",
-        type=str,
-        metavar="DIR",
-        help="Output directory for generated files (default: codebase root)",
-    )
-    scan_parser.add_argument(
-        "--ignore",
-        type=str,
-        metavar="DIRS",
-        help="Comma-separated list of additional directories to ignore",
-    )
-    scan_parser.add_argument(
-        "--quiet", "-q",
-        action="store_true",
-        help="Suppress terminal output (useful with --json)",
-    )
-    scan_parser.add_argument(
-        "--no-color",
-        action="store_true",
-        help="Disable colored output",
+    parser.add_argument("--output", "-o", type=str, metavar="DIR", help="Output directory for generated files (default: codebase root)")
+    parser.add_argument("--ignore", type=str, metavar="DIRS", help="Comma-separated list of additional directories to ignore")
+    parser.add_argument("--quiet", "-q", action="store_true", help="Suppress terminal output (useful with --json)")
+    parser.add_argument("--no-color", action="store_true", help="Disable colored output")
+
+
+def _log(message: str, quiet: bool, json_mode: bool) -> None:
+    """Print a log message if not in quiet/JSON mode."""
+    if not quiet and not json_mode:
+        print(message)
+
+
+def _perform_scan(path: Path, additional_ignores: Optional[List[str]], quiet: bool, json_mode: bool) -> Optional[ScanResult]:
+    """Perform the codebase scan and analysis."""
+    _log("  Discovering files...", quiet, json_mode)
+    source_files = scan_codebase(str(path), additional_ignores)
+
+    if not source_files:
+        if not quiet:
+            print("  ⚠️ No source files found in this directory.")
+        return None
+
+    langs = set(f.language for f in source_files)
+    _log(f"  Found {len(source_files)} files across {len(langs)} languages", quiet, json_mode)
+
+    _log("  Analyzing files...", quiet, json_mode)
+    analyses = analyze_files(source_files)
+
+    _log("  Detecting code smells...", quiet, json_mode)
+    smell_scores = detect_all_smells(analyses)
+
+    _log("  Finding duplicates...", quiet, json_mode)
+    duplicates = find_all_duplicates(analyses)
+
+    _log("  Calculating health score...", quiet, json_mode)
+    metrics = aggregate_metrics(source_files, analyses, smell_scores, duplicates)
+
+    return ScanResult(
+        source_files=source_files,
+        analyses=analyses,
+        smell_scores=smell_scores,
+        duplicates=duplicates,
+        metrics=metrics,
     )
 
-    return parser
+
+def _generate_fix_files(
+    args: argparse.Namespace,
+    output_dir: Path,
+    path: str,
+    metrics: CodebaseMetrics,
+) -> None:
+    """Generate fix instruction files (markdown, cursor rules, claude)."""
+    fixer = FixerEngine(path)
+    fix_plan = generate_fix_plan(path, metrics)
+
+    if args.fix:
+        fix_path = output_dir / "REVIBE_FIXES.md"
+        fix_path.write_text(fixer.render_markdown(fix_plan), encoding="utf-8")
+        if not args.quiet:
+            print(f"  📝 Fix instructions: {fix_path}")
+
+    if args.cursor:
+        cursor_path = output_dir / ".cursorrules"
+        cursor_path.write_text(fixer.render_cursor_rules(fix_plan), encoding="utf-8")
+        if not args.quiet:
+            print(f"  🔧 Cursor rules: {cursor_path}")
+
+    if args.claude:
+        claude_path = output_dir / "REVIBE_CLAUDE.md"
+        claude_path.write_text(fixer.render_claude_md(fix_plan), encoding="utf-8")
+        if not args.quiet:
+            print(f"  🤖 Claude notes: {claude_path}")
 
 
 def run_scan(args: argparse.Namespace) -> int:
     """Run the scan command."""
     path = Path(args.path).resolve()
 
+    # Validate path
     if not path.exists():
         print(f"❌ Error: Path does not exist: {path}", file=sys.stderr)
         return 1
@@ -121,9 +165,7 @@ def run_scan(args: argparse.Namespace) -> int:
         return 1
 
     # Parse ignore list
-    additional_ignores: Optional[List[str]] = None
-    if args.ignore:
-        additional_ignores = [d.strip() for d in args.ignore.split(",")]
+    additional_ignores = [d.strip() for d in args.ignore.split(",")] if args.ignore else None
 
     # Determine output directory
     output_dir = Path(args.output) if args.output else path
@@ -131,101 +173,39 @@ def run_scan(args: argparse.Namespace) -> int:
 
     # Handle --all flag
     if args.all:
-        args.html = True
-        args.fix = True
-        args.cursor = True
-        args.claude = True
+        args.html = args.fix = args.cursor = args.claude = True
 
-    # Show scanning message
-    if not args.quiet and not args.json:
-        print()
-        print(f"🔍 Revibe v{__version__} — Scanning {path}")
-        print()
+    # Show banner
+    _log("", args.quiet, args.json)
+    _log(f"🔍 Revibe v{__version__} — Scanning {path}", args.quiet, args.json)
+    _log("", args.quiet, args.json)
 
     try:
-        # Step 1: Scan for files
-        if not args.quiet and not args.json:
-            print("  Discovering files...")
-        source_files = scan_codebase(str(path), additional_ignores)
-
-        if not source_files:
-            if not args.quiet:
-                print("  ⚠️ No source files found in this directory.")
+        result = _perform_scan(path, additional_ignores, args.quiet, args.json)
+        if result is None:
             return 0
 
-        if not args.quiet and not args.json:
-            langs = set(f.language for f in source_files)
-            print(f"  Found {len(source_files)} files across {len(langs)} languages")
-
-        # Step 2: Analyze files
-        if not args.quiet and not args.json:
-            print("  Analyzing files...")
-        analyses = analyze_files(source_files)
-
-        # Step 3: Detect smells
-        if not args.quiet and not args.json:
-            print("  Detecting code smells...")
-        smell_scores = detect_all_smells(analyses)
-
-        # Step 4: Find duplicates
-        if not args.quiet and not args.json:
-            print("  Finding duplicates...")
-        duplicates = find_all_duplicates(analyses)
-
-        # Step 5: Aggregate metrics
-        if not args.quiet and not args.json:
-            print("  Calculating health score...")
-        metrics = aggregate_metrics(source_files, analyses, smell_scores, duplicates)
-
-        # Step 6: Generate outputs
-
-        # Terminal report (unless --quiet or --json only)
+        # Terminal report
         if not args.quiet and not args.json:
             print()
-            print_terminal_report(metrics, __version__, force_plain=args.no_color)
+            print_terminal_report(result.metrics, __version__, force_plain=args.no_color)
 
         # JSON output
         if args.json:
-            json_output = render_json_report(metrics, str(path))
-            print(json_output)
+            print(render_json_report(result.metrics, str(path)))
 
         # HTML report
         if args.html:
             html_path = output_dir / "revibe_report.html"
-            html_content = generate_html_report(metrics, str(path))
-            html_path.write_text(html_content, encoding="utf-8")
+            html_path.write_text(generate_html_report(result.metrics, str(path)), encoding="utf-8")
             if not args.quiet:
                 print(f"  📄 HTML report: {html_path}")
 
-        # Fix instructions
+        # Fix files
         if args.fix or args.cursor or args.claude:
-            fixer = FixerEngine(str(path))
-            fix_plan = generate_fix_plan(str(path), metrics)
+            _generate_fix_files(args, output_dir, str(path), result.metrics)
 
-            if args.fix:
-                fix_path = output_dir / "REVIBE_FIXES.md"
-                fix_content = fixer.render_markdown(fix_plan)
-                fix_path.write_text(fix_content, encoding="utf-8")
-                if not args.quiet:
-                    print(f"  📝 Fix instructions: {fix_path}")
-
-            if args.cursor:
-                cursor_path = output_dir / ".cursorrules"
-                cursor_content = fixer.render_cursor_rules(fix_plan)
-                cursor_path.write_text(cursor_content, encoding="utf-8")
-                if not args.quiet:
-                    print(f"  🔧 Cursor rules: {cursor_path}")
-
-            if args.claude:
-                claude_path = output_dir / "REVIBE_CLAUDE.md"
-                claude_content = fixer.render_claude_md(fix_plan)
-                claude_path.write_text(claude_content, encoding="utf-8")
-                if not args.quiet:
-                    print(f"  🤖 Claude notes: {claude_path}")
-
-        if not args.quiet and not args.json:
-            print()
-
+        _log("", args.quiet, args.json)
         return 0
 
     except KeyboardInterrupt:

@@ -27,5 +27,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - npm wrapper for `npx revibe`
 - Homebrew formula template
 
-[Unreleased]: https://github.com/AK-Issac/revibe/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/AK-Issac/revibe/releases/tag/v0.1.0
+[Unreleased]: https://github.com/webmyc/revibe/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/webmyc/revibe/releases/tag/v0.1.0

@@ -36,7 +36,7 @@ npx revibe scan ./my-project
 ### Homebrew (macOS)
 
 ```bash
-brew tap AK-Issac/revibe
+brew tap webmyc/revibe
 brew install revibe
 revibe scan ./my-project
 ```
@@ -205,7 +205,7 @@ Contributions are welcome! Here's how to get started:
 
 ```bash
 # Clone the repo
-git clone https://github.com/AK-Issac/revibe.git
+git clone https://github.com/webmyc/revibe.git
 cd revibe
 
 # Install in development mode
@@ -244,7 +244,7 @@ MIT — do whatever you want with it.
 - **Website**: [revibe.help](https://revibe.help)
 - **PyPI**: [pypi.org/project/revibe](https://pypi.org/project/revibe)
 - **npm**: [npmjs.com/package/revibe](https://www.npmjs.com/package/revibe)
-- **GitHub**: [github.com/AK-Issac/revibe](https://github.com/AK-Issac/revibe)
+- **GitHub**: [github.com/webmyc/revibe](https://github.com/webmyc/revibe)
 
 ---
 

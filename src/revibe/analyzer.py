@@ -255,7 +255,6 @@ def analyze_file(source_file: SourceFile) -> Optional[FileAnalysis]:
     in_multiline_comment = False
     current_function: Optional[Tuple[str, int]] = None
     current_class: Optional[Tuple[str, int, int]] = None  # (name, start, method_count)
-    indent_stack: List[int] = []
 
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
