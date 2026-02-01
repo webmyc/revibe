@@ -203,7 +203,7 @@ class TestHealthScorePermutations:
         # Sensitive: Max -> -10
         base_metrics.sensitive_functions_without_error_handling = ["f"] * 10
 
-        # TODOs: Max -> -5
+        # Todo Items: Max -> -5
         base_metrics.todos = [("f", 1, "t")] * 30
 
         # Over-engineering: Max -> -5

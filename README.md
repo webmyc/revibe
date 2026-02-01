@@ -1,6 +1,10 @@
-# 🔍 Revibe
-
-**Your vibe-coded project deserves a second pass. And a fix plan.**
+<div align="center">
+  <img src="src/revibe/revibe%20logo.svg" alt="Revibe Logo" width="150" />
+  <h1>Revibe</h1>
+  <p>
+    <b>Your vibe-coded project deserves a second pass. And a fix plan.</b>
+  </p>
+</div>
 
 [![PyPI version](https://badge.fury.io/py/revibe.svg)](https://badge.fury.io/py/revibe)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
