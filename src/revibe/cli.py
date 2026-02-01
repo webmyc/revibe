@@ -13,7 +13,9 @@ from revibe.duplicates import DuplicateGroup, find_all_duplicates
 from revibe.fixer import FixerEngine, generate_fix_plan
 from revibe.metrics import CodebaseMetrics, aggregate_metrics
 from revibe.report_html import generate_html_report
-from revibe.report_json import render_json_report
+from revibe.report_json import generate_json_report
+
+
 from revibe.report_terminal import print_terminal_report
 from revibe.scanner import SourceFile, scan_codebase
 from revibe.smells import detect_all_smells
@@ -134,21 +136,30 @@ def _generate_fix_files(
 
     if args.fix:
         fix_path = output_dir / "REVIBE_FIXES.md"
-        fix_path.write_text(fixer.render_markdown(fix_plan), encoding="utf-8")
-        if not args.quiet:
-            print(f"  📝 Fix instructions: {fix_path}")
+        try:
+            fix_path.write_text(fixer.render_markdown(fix_plan), encoding="utf-8")
+            if not args.quiet:
+                print(f"  📝 Fix instructions: {fix_path}")
+        except OSError as e:
+            print(f"  ❌ Failed to write fixes to {fix_path}: {e}", file=sys.stderr)
 
     if args.cursor:
         cursor_path = output_dir / ".cursorrules"
-        cursor_path.write_text(fixer.render_cursor_rules(fix_plan), encoding="utf-8")
-        if not args.quiet:
-            print(f"  🔧 Cursor rules: {cursor_path}")
+        try:
+            cursor_path.write_text(fixer.render_cursor_rules(fix_plan), encoding="utf-8")
+            if not args.quiet:
+                print(f"  🔧 Cursor rules: {cursor_path}")
+        except OSError as e:
+             print(f"  ❌ Failed to write .cursorrules to {cursor_path}: {e}", file=sys.stderr)
 
     if args.claude:
         claude_path = output_dir / "REVIBE_CLAUDE.md"
-        claude_path.write_text(fixer.render_claude_md(fix_plan), encoding="utf-8")
-        if not args.quiet:
-            print(f"  🤖 Claude notes: {claude_path}")
+        try:
+            claude_path.write_text(fixer.render_claude_md(fix_plan), encoding="utf-8")
+            if not args.quiet:
+                print(f"  🤖 Claude notes: {claude_path}")
+        except OSError as e:
+            print(f"  ❌ Failed to write Claude notes to {claude_path}: {e}", file=sys.stderr)
 
 
 def run_scan(args: argparse.Namespace) -> int:
@@ -192,14 +203,17 @@ def run_scan(args: argparse.Namespace) -> int:
 
         # JSON output
         if args.json:
-            print(render_json_report(result.metrics, str(path)))
+            print(generate_json_report(result.metrics, str(path), result.analyses))
 
         # HTML report
         if args.html:
             html_path = output_dir / "revibe_report.html"
-            html_path.write_text(generate_html_report(result.metrics, str(path)), encoding="utf-8")
-            if not args.quiet:
-                print(f"  📄 HTML report: {html_path}")
+            try:
+                html_path.write_text(generate_html_report(result.metrics, str(path)), encoding="utf-8")
+                if not args.quiet:
+                    print(f"  📄 HTML report: {html_path}")
+            except OSError as e:
+                print(f"  ❌ Failed to write HTML report to {html_path}: {e}", file=sys.stderr)
 
         # Fix files
         if args.fix or args.cursor or args.claude:

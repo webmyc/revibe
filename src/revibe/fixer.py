@@ -581,5 +581,24 @@ def generate_fix_plan(
     Returns:
         FixPlan with prioritized fixes
     """
-    engine = FixerEngine(codebase_path)
-    return engine.generate_fixes(metrics)
+    try:
+        engine = FixerEngine(codebase_path)
+        return engine.generate_fixes(metrics)
+    except Exception as e:
+        # Return fallback error plan
+        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        error_fix = Fix(
+            priority="CRITICAL",
+            title="Fixer Error",
+            description=f"Fixer failed to generate plan: {str(e)}",
+            prompt="Debug the fixer engine.",
+            affected_files=[],
+            verification="Run fixer again"
+        )
+        return FixPlan(
+            fixes=[error_fix],
+            codebase_path=codebase_path,
+            health_score=0,
+            risk_level="CRITICAL",
+            generated_at=now
+        )

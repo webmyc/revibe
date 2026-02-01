@@ -1,6 +1,44 @@
+# Revibe development ignores
 prompts/NAMING.md
 prompts/PHASE-1-CLAUDE.md
 prompts/PHASE-2-CLAUDE.md
 prompts/PHASE-3-CLAUDE.md
 prompts/QUICKSTART.md
 prompts/STRATEGY.md
+
+# OS files
+.DS_Store
+*/.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Generated reports (optional to keep)
+revibe_report.html
+REVIBE_FIXES.md
+REVIBE_CLAUDE.md
+.cursorrules

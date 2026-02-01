@@ -222,7 +222,7 @@ def calculate_health_score(metrics: "CodebaseMetrics") -> int:
     sensitive_unhandled = len(metrics.sensitive_functions_without_error_handling)
     score -= min(10, sensitive_unhandled * 2)
 
-    # TODOs (up to 5 points penalty)
+    # Task Markers (up to 5 points penalty)
     if len(metrics.todos) > 20:
         score -= 5
     elif len(metrics.todos) > 10:
@@ -273,13 +273,30 @@ def aggregate_metrics(
     """
     metrics = CodebaseMetrics()
     metrics.file_analyses = analyses
-
-    # File counts
     metrics.total_files = len(source_files)
+    metrics.ai_smell_scores = smell_scores or {}
+    metrics.duplicate_groups = duplicate_groups or []
+    
+    # Calculate file counts and per-file aggregations
+    _aggregate_file_stats(metrics, source_files)
+    
+    # Aggregate deep analysis data
+    _aggregate_analysis_data(metrics, analyses)
+
+    # Detect features
+    metrics.feature_count = detect_features(analyses)
+
+    # Calculate derived scores
+    _calculate_derived_metrics(metrics)
+
+    return metrics
+
+
+def _aggregate_file_stats(metrics: CodebaseMetrics, source_files: List[SourceFile]):
+    """Calculate basic file counts and language stats."""
     metrics.source_files = sum(1 for f in source_files if not f.is_test)
     metrics.test_files = sum(1 for f in source_files if f.is_test)
-
-    # Language breakdown
+    
     for f in source_files:
         if f.language not in metrics.languages:
             metrics.languages[f.language] = {"files": 0, "lines": 0, "test_files": 0}
@@ -287,11 +304,14 @@ def aggregate_metrics(
         if f.is_test:
             metrics.languages[f.language]["test_files"] += 1
 
-    # Aggregate from analyses
+
+def _aggregate_analysis_data(metrics: CodebaseMetrics, analyses: List[FileAnalysis]):
+    """Aggregate data from detailed file analyses."""
     for analysis in analyses:
         is_test = analysis.source_file.is_test
         lang = analysis.source_file.language
 
+        # Lines
         metrics.total_lines += analysis.total_lines
         metrics.code_lines += analysis.code_lines
         metrics.comment_lines += analysis.comment_lines
@@ -305,36 +325,38 @@ def aggregate_metrics(
         if lang in metrics.languages:
             metrics.languages[lang]["lines"] += analysis.code_lines
 
+        # Counts
         metrics.total_functions += analysis.function_count
         metrics.total_classes += analysis.class_count
         metrics.total_imports += analysis.import_count
 
-        # Collect TODOs
-        for line_num, content in analysis.todos:
-            metrics.todos.append((analysis.source_file.relative_path, line_num, content))
-
-        # Collect long functions
-        for func in analysis.long_functions:
-            metrics.long_functions.append((analysis.source_file.relative_path, func))
-
-        # Collect sensitive functions without error handling
-        if not analysis.has_error_handling:
-            for func in analysis.sensitive_functions:
-                metrics.sensitive_functions_without_error_handling.append(
-                    (analysis.source_file.relative_path, func)
-                )
-
-        # Store functions by file for fixer
+        # Issues
+        _collect_issues(metrics, analysis)
+        
+        # Store for fixer
         metrics.functions_by_file[analysis.source_file.relative_path] = analysis.functions
 
-    # Set smell scores and duplicates
-    metrics.ai_smell_scores = smell_scores or {}
-    metrics.duplicate_groups = duplicate_groups or []
 
-    # Detect features
-    metrics.feature_count = detect_features(analyses)
+def _collect_issues(metrics: CodebaseMetrics, analysis: FileAnalysis):
+    """Collect issues (TODOs, long functions, etc) from analysis."""
+    # Task Markers
+    for line_num, content in analysis.todos:
+        metrics.todos.append((analysis.source_file.relative_path, line_num, content))
 
-    # Calculate derived metrics
+    # Long functions
+    for func in analysis.long_functions:
+        metrics.long_functions.append((analysis.source_file.relative_path, func))
+
+    # Sensitive unhandled functions
+    if not analysis.has_error_handling:
+        for func in analysis.sensitive_functions:
+            metrics.sensitive_functions_without_error_handling.append(
+                (analysis.source_file.relative_path, func)
+            )
+
+
+def _calculate_derived_metrics(metrics: CodebaseMetrics):
+    """Calculate metrics derived from aggregated data."""
     if metrics.source_loc > 0:
         metrics.test_to_code_ratio = metrics.test_loc / metrics.source_loc
     else:
@@ -344,8 +366,5 @@ def aggregate_metrics(
         metrics.source_loc
     )
 
-    # Calculate health score
     metrics.health_score = calculate_health_score(metrics)
     metrics.risk_level = determine_risk_level(metrics.health_score)
-
-    return metrics

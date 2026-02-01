@@ -6,7 +6,7 @@ import pytest
 
 from revibe.fixer import FixerEngine, generate_fix_plan
 from revibe.report_html import generate_html_report
-from revibe.report_json import render_json_report
+from revibe.report_json import generate_json_report
 from revibe.report_terminal import print_terminal_report
 
 
@@ -70,6 +70,41 @@ class TestHtmlReport:
         assert "&lt;with&gt;" in html
         assert "&amp;chars" in html
 
+    def test_get_styles_and_scripts(self, healthy_project):
+        """Test internal helper functions for styles and scripts."""
+        # Inspect the module internals via the public API or direct import if needed
+        # Since they are private, we test them via the main function or direct import
+        from revibe.report_html import _get_scripts, _get_styles
+
+        styles = _get_styles()
+        assert ":root" in styles
+        assert "body {" in styles
+        assert ".score-circle" in styles
+
+        scripts = _get_scripts()
+        assert "document.querySelectorAll" in scripts
+        assert "addEventListener" in scripts
+
+    def test_get_component_styles(self):
+        """Test component styles generation."""
+        from revibe.report_html import _get_component_styles
+        styles = _get_component_styles()
+        assert ".card" in styles
+        assert ".score-circle" in styles
+        assert ".risk-badge" in styles
+        # Verify specific critical styles
+        assert "conic-gradient" in styles
+        assert "var(--danger)" in styles
+
+    def test_get_layout_styles(self):
+        """Test layout styles generation."""
+        from revibe.report_html import _get_layout_styles
+        styles = _get_layout_styles()
+        assert ".container" in styles
+        assert "header" in styles
+        assert "footer" in styles
+        assert "flex" in styles
+
 
 class TestJsonReport:
     """Tests for JSON report generation."""
@@ -88,7 +123,7 @@ class TestJsonReport:
         duplicates = find_all_duplicates(analyses)
         metrics = aggregate_metrics(files, analyses, smells, duplicates)
 
-        result = render_json_report(metrics, str(healthy_project))
+        result = generate_json_report(metrics, str(healthy_project), analyses)
         data = json.loads(result)
 
         # JSON has nested structure
@@ -112,7 +147,7 @@ class TestJsonReport:
         duplicates = find_all_duplicates(analyses)
         metrics = aggregate_metrics(files, analyses, smells, duplicates)
 
-        result = render_json_report(metrics, str(bloated_project))
+        result = generate_json_report(metrics, str(bloated_project), analyses)
         data = json.loads(result)
 
         assert "ai_smell_scores" in data

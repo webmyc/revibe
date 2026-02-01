@@ -21,6 +21,19 @@ LANGUAGE_EXTENSIONS: Dict[str, str] = {
     ".tsx": "TypeScript",
     ".mts": "TypeScript",
     ".cts": "TypeScript",
+    # HTML/CSS
+    ".html": "HTML",
+    ".htm": "HTML",
+    ".css": "CSS",
+    ".scss": "CSS",
+    ".sass": "CSS",
+    ".less": "CSS",
+    # Data
+    ".json": "JSON",
+    ".xml": "XML",
+    ".yaml": "YAML",
+    ".yml": "YAML",
+    ".md": "Markdown",
     # Go
     ".go": "Go",
     # Rust

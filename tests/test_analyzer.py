@@ -83,15 +83,15 @@ class Calculator:
 
     def test_analyze_file_with_todos(self, temp_dir):
         py_file = temp_dir / "todo.py"
-        py_file.write_text('''
+        py_file.write_text("""
 def foo():
-    # TODO: Implement this
+# TODO: Implement this
     pass
 
 def bar():
-    # FIXME: This is broken
+# FIXME: This is broken
     pass
-''')
+""")
 
         files = scan_codebase(str(temp_dir))
         analysis = analyze_file(files[0])
@@ -126,6 +126,31 @@ def divide(a, b):
         analysis = analyze_file(files[0])
 
         assert analysis.has_error_handling is False
+
+    def test_analyze_empty_file(self, temp_dir):
+        """Test analyzing a completely empty file."""
+        py_file = temp_dir / "empty.py"
+        py_file.write_text("")
+        files = scan_codebase(str(temp_dir))
+        analysis = analyze_file(files[0])
+        assert analysis.total_lines == 0
+        assert analysis.code_lines == 0
+
+    def test_analyze_binary_file(self, temp_dir):
+        """Test analyzing a binary file (should return None)."""
+        bin_file = temp_dir / "image.png"
+        bin_file.write_bytes(b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR")
+        # Creating a SourceFile manually since scanner might skip .png
+        from revibe.scanner import SourceFile
+        source_file = SourceFile(
+            path=bin_file,
+            relative_path="image.png",
+            language="Binary",
+            is_test=False,
+            size_bytes=100
+        )
+        analysis = analyze_file(source_file)
+        assert analysis is None
 
     def test_sensitive_function_detection(self, temp_dir):
         py_file = temp_dir / "auth.py"

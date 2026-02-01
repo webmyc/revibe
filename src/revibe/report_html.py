@@ -26,18 +26,21 @@ def generate_html_report(
     Returns:
         Complete HTML document as string
     """
-    if fix_plan is None:
-        fix_plan = generate_fix_plan(codebase_path, metrics)
+    try:
+        if fix_plan is None:
+            fix_plan = generate_fix_plan(codebase_path, metrics)
 
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    # Generate sections
-    health_section = _generate_health_section(metrics)
-    metrics_section = _generate_metrics_section(metrics)
-    fixes_section = _generate_fixes_section(fix_plan)
-    smells_section = _generate_smells_section(metrics)
-    languages_section = _generate_languages_section(metrics)
-    duplicates_section = _generate_duplicates_section(metrics)
+        # Generate sections
+        health_section = _generate_health_section(metrics)
+        metrics_section = _generate_metrics_section(metrics)
+        fixes_section = _generate_fixes_section(fix_plan)
+        smells_section = _generate_smells_section(metrics)
+        languages_section = _generate_languages_section(metrics)
+        duplicates_section = _generate_duplicates_section(metrics)
+    except Exception as e:
+        return f"<!-- Error generating HTML report: {str(e)} -->"
 
     html = f'''<!DOCTYPE html>
 <html lang="en">
@@ -90,6 +93,15 @@ def generate_html_report(
 
 def _get_styles() -> str:
     """Get CSS styles for the report."""
+    return (
+        _get_base_styles() + 
+        _get_layout_styles() + 
+        _get_component_styles() + 
+        _get_print_styles()
+    )
+
+
+def _get_base_styles() -> str:
     return '''
 :root {
     --bg-primary: #0f172a;
@@ -121,13 +133,46 @@ body {
     line-height: 1.6;
     min-height: 100vh;
 }
+'''
 
+
+def _get_layout_styles() -> str:
+    """Get all layout-related styles."""
+    return _get_structure_styles() + _get_header_styles() + _get_footer_styles()
+
+
+def _get_structure_styles() -> str:
+    """Get main container and section styles."""
+    return '''
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1.5rem;
 }
 
+main {
+    padding: 2rem 0;
+}
+
+.section {
+    margin-bottom: 2.5rem;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+'''
+
+
+def _get_header_styles() -> str:
+    """Get header and metadata styles."""
+    return '''
 header {
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border);
@@ -165,25 +210,52 @@ header h1 {
     padding: 0.25rem 0.5rem;
     border-radius: 4px;
 }
+'''
 
-main {
+
+def _get_footer_styles() -> str:
+    """Get footer styles."""
+    return '''
+footer {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
     padding: 2rem 0;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
 }
 
-.section {
-    margin-bottom: 2.5rem;
+footer a {
+    color: var(--accent);
+    text-decoration: none;
 }
 
-.section-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+footer code {
+    background: var(--bg-tertiary);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
 }
+'''
 
+
+def _get_component_styles() -> str:
+    """Get all component-related styles."""
+    return (
+        _get_card_styles() +
+        _get_score_styles() +
+        _get_risk_styles() +
+        _get_fix_styles() +
+        _get_code_styles() +
+        _get_smell_styles() +
+        _get_lang_styles() +
+        _get_duplicate_styles()
+    )
+
+
+def _get_card_styles() -> str:
+    """Get card container styles."""
+    return '''
 .card {
     background: var(--bg-secondary);
     border-radius: 12px;
@@ -197,7 +269,12 @@ main {
     gap: 2rem;
     flex-wrap: wrap;
 }
+'''
 
+
+def _get_score_styles() -> str:
+    """Get health score circle styles."""
+    return '''
 .score-circle {
     width: 140px;
     height: 140px;
@@ -235,7 +312,12 @@ main {
 .score-moderate { background: conic-gradient(var(--warning) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); }
 .score-elevated { background: conic-gradient(var(--elevated) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); }
 .score-high, .score-critical { background: conic-gradient(var(--danger) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); }
+'''
 
+
+def _get_risk_styles() -> str:
+    """Get risk badges and metric grid styles."""
+    return '''
 .health-details {
     flex: 1;
     min-width: 250px;
@@ -284,7 +366,12 @@ main {
     font-size: 0.8rem;
     color: var(--text-muted);
 }
+'''
 
+
+def _get_fix_styles() -> str:
+    """Get styles for fix items and toggles."""
+    return '''
 .fix-item {
     background: var(--bg-tertiary);
     border-radius: 8px;
@@ -346,7 +433,12 @@ main {
     margin-bottom: 1rem;
     font-size: 0.95rem;
 }
+'''
 
+
+def _get_code_styles() -> str:
+    """Get code block and copy button styles."""
+    return '''
 .fix-prompt {
     background: var(--code-bg);
     border: 1px solid var(--border);
@@ -382,7 +474,12 @@ main {
 .copy-btn.copied {
     background: var(--success);
 }
+'''
 
+
+def _get_smell_styles() -> str:
+    """Get smell bar chart styles."""
+    return '''
 .smell-bar {
     display: flex;
     align-items: center;
@@ -416,7 +513,12 @@ main {
     font-size: 0.85rem;
     color: var(--text-muted);
 }
+'''
 
+
+def _get_lang_styles() -> str:
+    """Get language usage bar styles."""
+    return '''
 .lang-bar {
     display: flex;
     align-items: center;
@@ -449,7 +551,12 @@ main {
     font-size: 0.85rem;
     color: var(--text-secondary);
 }
+'''
 
+
+def _get_duplicate_styles() -> str:
+    """Get duplicate list and misc styles."""
+    return '''
 .duplicates-list {
     display: flex;
     flex-direction: column;
@@ -478,32 +585,15 @@ main {
     padding: 0.25rem 0;
 }
 
-footer {
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border);
-    padding: 2rem 0;
-    text-align: center;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-footer a {
-    color: var(--accent);
-    text-decoration: none;
-}
-
-footer code {
-    background: var(--bg-tertiary);
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.85rem;
-}
-
 .tip {
     margin-top: 0.5rem;
     color: var(--text-muted);
 }
+'''
 
+
+def _get_print_styles() -> str:
+    return '''
 @media print {
     :root {
         --bg-primary: #fff;

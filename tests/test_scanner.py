@@ -37,8 +37,8 @@ class TestDetectLanguage:
         assert detect_language(Path("lib.rs")) == "Rust"
 
     def test_unknown_extension(self):
-        assert detect_language(Path("README.md")) is None
-        assert detect_language(Path("config.yaml")) is None
+        """Test file with unknown extension."""
+        assert detect_language(Path("unknown.xyz")) is None
 
 
 class TestIsTestFile:

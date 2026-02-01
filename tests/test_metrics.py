@@ -219,20 +219,32 @@ class TestMetricsSummary:
     """Tests for the summary method."""
 
     def test_summary_contains_key_fields(self):
-        metrics = CodebaseMetrics(
-            total_files=10,
-            source_files=8,
-            test_files=2,
-            source_loc=500,
-            test_loc=100,
-            health_score=75,
-            risk_level="MODERATE",
-        )
+        """Test that summary contains all required fields."""
+        try:
+            metrics = CodebaseMetrics(
+                total_files=10,
+                source_files=8,
+                test_files=2,
+                source_loc=500,
+                test_loc=100,
+                health_score=75,
+                risk_level="MODERATE",
+            )
 
-        summary = metrics.summary()
+            summary = metrics.summary()
 
-        assert "total_files" in summary
-        assert "source_files" in summary
-        assert "health_score" in summary
-        assert "risk_level" in summary
-        assert summary["health_score"] == 75
+            if not summary:
+                pytest.fail("Summary dictionary is empty")
+
+            required_fields = [
+                "total_files", "source_files", "health_score", 
+                "risk_level", "estimated_defects"
+            ]
+            
+            for field in required_fields:
+                assert field in summary, f"Missing required field: {field}"
+                
+            assert summary["health_score"] == 75
+
+        except Exception as e:
+            pytest.fail(f"Summary generation failed: {e}")

@@ -302,6 +302,10 @@ def detect_missing_error_handling(analyses: List[FileAnalysis]) -> SmellResult:
     files_without_handling = []
 
     for a in analyses:
+        # Skip test files - they usually rely on assertions, not error handling
+        if a.source_file.is_test:
+            continue
+            
         total_functions += len(a.functions)
         if a.has_error_handling:
             functions_with_errors += len(a.functions)
@@ -400,8 +404,12 @@ def detect_all_smells(analyses: List[FileAnalysis]) -> Dict[str, float]:
 
     results = {}
     for detector in detectors:
-        result = detector(analyses)
-        results[result.name] = result.score
+        try:
+            result = detector(analyses)
+            results[result.name] = result.score
+        except Exception:
+            # If a specific detector fails to get scores, skip or set to 0.0
+            results[detector.__name__.replace('detect_', '')] = 0.0
 
     return results
 
