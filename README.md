@@ -6,250 +6,283 @@
   </p>
 </div>
 
-[![PyPI version](https://badge.fury.io/py/revibe.svg)](https://badge.fury.io/py/revibe)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+Revibe is a code health scanner built for the AI-assisted development era.
 
-Revibe scans your codebase and tells you:
+It analyzes a codebase, surfaces structural and quality risks, and converts them into clear, scoped prompts you can hand directly to AI coding tools like Cursor, Claude, or Copilot.
 
-- 🐛 **How many bugs** are probably hiding in your code
-- 🧪 **Whether you have enough tests** (spoiler: you probably don't)
-- 🤖 **Which parts smell like AI-generated code**
-- 📏 **Whether your codebase is bigger than it needs to be**
-- 🔗 **How complex your feature interactions are**
+Revibe does not enforce rules.
+It helps humans and AI reason about code quality together.
 
-**Then it generates copy-paste fix instructions you can hand right back to Cursor, Claude, or your AI tool.**
+## Why Revibe Exists
 
----
+AI has changed how code is written, refactored, and maintained.
+Most tooling has not caught up.
 
-## ⚡ Quick Start
+Traditional analyzers assume:
+- static rules
+- binary pass or fail outcomes
+- human only workflows
 
-### pip (recommended)
+Revibe assumes:
+- AI is already in the loop
+- judgment matters
+- clarity beats enforcement
 
-```bash
-pip install revibe
-revibe scan ./my-project
-```
+Revibe answers a simple question:
+**If I gave this codebase to a senior engineer and an AI pair programmer, what should they fix first?**
 
-### npx (no install needed)
+## What Revibe Does
 
-```bash
-npx revibe scan ./my-project
-```
+Revibe scans a repository and produces:
 
-### Homebrew (macOS)
+### Code Health Signals
+- complexity hotspots
+- bug prone patterns
+- brittle or low confidence areas
 
-```bash
-brew tap webmyc/revibe
-brew install revibe
-revibe scan ./my-project
-```
+### Structural Insights
+- oversized or unclear modules
+- duplicated or tightly coupled logic
+- unclear responsibilities
 
----
+### Test Signals
+- missing tests
+- shallow or misleading coverage
+- untested critical paths
 
-## 🔧 Get Fix Instructions
+### AI Ready Improvement Prompts
+- concrete and scoped instructions
+- written for review, not blind execution
+- easy to paste into AI tools
 
-The real power of Revibe isn't just finding problems — it's generating **AI-ready fix instructions** you can copy-paste directly into your AI coding tool.
+### Output Formats
+Revibe can generate:
+- **Markdown**: Human readable reports with AI ready prompts
+- **JSON**: Structured output for automation or tooling
+- **HTML**: Shareable static reports
 
-```bash
-# Generate copy-paste prompts for your AI tool
-revibe scan ./my-project --fix
+## Signal Confidence Vocabulary
 
-# Generate Cursor rules file
-revibe scan ./my-project --cursor
+Revibe assigns a confidence level to every signal.
+This reflects how strongly the signal correlates with real-world problems, not how severe it sounds.
 
-# Generate CLAUDE.md section
-revibe scan ./my-project --claude
+### High Confidence
+Repeatedly observed in production systems.
+- Strong correlation with bugs, regressions, or refactor pain
+- Rarely false positives
 
-# Full HTML report + all fix formats
-revibe scan ./my-project --all
-```
+**How to treat it:**
+Act unless you have a clear reason not to.
 
-### Example Output
+### Medium Confidence
+Common source of friction.
+- Context-dependent
+- Often becomes a problem as the codebase grows
 
-Running `revibe scan . --fix` generates a `REVIBE_FIXES.md` file with prompts like:
+**How to treat it:**
+Review with intent. Decide consciously.
 
-```markdown
-## 🔴 CRITICAL: Add Tests (you have almost none)
+### Low Confidence
+Weak signal.
+- Often stylistic or situational
+- Included to prompt curiosity, not action
 
-Your codebase has 1,234 lines of source code and only 47 lines of tests (3.8% ratio).
-The recommended minimum is 80%.
+**How to treat it:**
+Optional. Ignore without guilt.
 
-### Prompt 1: Generate tests for critical paths
+### Important Note
+Revibe confidence is not certainty.
+It is a prior, not a verdict.
 
-Analyze this codebase and generate comprehensive test files for the following
-critical modules that currently have ZERO test coverage:
+Revibe helps you decide where to spend attention, not what is correct.
 
-- src/api/payments.py (12 functions, 0 tests) — Focus on: process_payment, refund
-- src/auth/login.py (5 functions, 0 tests) — Focus on: authenticate, verify_token
+## What Revibe Is Not
 
-For each module, create a test file in tests/ that:
-1. Tests happy path for each function
-2. Tests edge cases (null inputs, invalid data, boundary values)
-3. Tests error conditions
-4. Uses pytest fixtures for shared setup
+Revibe is intentionally not:
+- a linter replacement
+- a formal static analyzer
+- a CI gatekeeper
+- a magic "fix my code" button
 
-Start with src/api/payments.py as it handles money.
-```
+It does not claim correctness.
+It optimizes for insight.
 
----
+## CLI Usage
 
-## 📊 What It Finds
+### Design Principles
+The CLI is designed to be:
+- quiet by default
+- explicit when needed
+- predictable
+- readable without documentation
 
-### 8 AI Code Smell Detectors
+If a command surprises you, it is a bug.
 
-| Smell | What It Detects |
-|-------|-----------------|
-| **Excessive Comments** | High ratio of comments to code (AI tends to over-explain) |
-| **Verbose Naming** | Function/variable names > 35 characters |
-| **Boilerplate Heavy** | Many imports relative to actual functions |
-| **Inconsistent Patterns** | Mixed naming conventions (camelCase vs snake_case) |
-| **Dead Code Indicators** | Same function defined in multiple files |
-| **Over-engineering** | Too many classes relative to codebase size |
-| **Missing Error Handling** | Functions without try/catch or error handling |
-| **Copy-paste Artifacts** | Repeated string patterns across files |
-
-### Health Metrics
-
-- **Health Score**: 0-100 based on test coverage, code smells, duplicates, and more
-- **Risk Level**: LOW, MODERATE, ELEVATED, HIGH, or CRITICAL
-- **Estimated Defects**: Based on industry research (25/KLOC baseline, 1.7x for AI code)
-- **Feature Interactions**: Complexity metric using 2^n - 1 - n formula
-- **Test-to-Code Ratio**: How much of your code is tested
-
----
-
-## 🧮 The Math Behind It
-
-Revibe's defect estimation is based on industry research:
-
-- **Human code**: ~15-50 defects per 1000 lines of code (KLOC)
-- **AI-generated code**: 1.7x more defects than human code (Stanford/UIUC research)
-- **Vibe-coded projects**: We use 42.5 defects/KLOC as the baseline
-
-The feature interaction formula `2^n - 1 - n` calculates how many ways your features can interact:
-
-| Features | Interaction Paths |
-|----------|-------------------|
-| 3 | 4 |
-| 5 | 26 |
-| 10 | 1,013 |
-| 15 | 32,752 |
-
-More features = exponentially more things that can break.
-
----
-
-## 📋 CLI Reference
+### Basic Scan
 
 ```bash
-# Basic scan with terminal output
 revibe scan <path>
-
-# Output formats
-revibe scan <path> --html       # HTML report (dark theme, copy buttons)
-revibe scan <path> --json       # JSON output to stdout
-revibe scan <path> --fix        # Generate REVIBE_FIXES.md
-revibe scan <path> --cursor     # Generate .cursorrules
-revibe scan <path> --claude     # Generate CLAUDE.md section
-revibe scan <path> --all        # All formats
-
-# Options
-revibe scan <path> --output ./reports/  # Custom output directory
-revibe scan <path> --ignore vendor,tmp  # Additional directories to ignore
-revibe scan <path> --quiet              # Suppress terminal output
-revibe scan <path> --no-color           # Disable colors
-
-# Meta
-revibe --version
-revibe --help
 ```
 
----
-
-## 🌐 Supported Languages
-
-Revibe supports 30+ programming languages:
-
-**Primary support** (function/class detection, feature detection):
-Python, JavaScript, TypeScript, Go, Rust, Java, Kotlin, Swift, C#, PHP, Ruby, Dart
-
-**Basic support** (LOC counting, file detection):
-C, C++, Scala, Elixir, Lua, Perl, R, Shell, Vue, Svelte, SQL, Haskell, OCaml, F#, Clojure, Erlang, Zig, Nim, Crystal, Groovy
-
----
-
-## ❓ FAQ
-
-### Is this just for vibe-coded projects?
-
-It works on any codebase, but it's specifically tuned for patterns common in AI-generated code. The smell detectors and fix prompts are designed for the kinds of issues AI tools create.
-
-### Does it actually fix my code?
-
-It generates instructions that your AI tool can execute. You run the scan, copy the prompt, paste it into Cursor/Claude/Copilot, and the AI applies the fix. Revibe is the auditor; your AI tool is the fixer.
-
-### Is the CLI free forever?
-
-Yes. MIT licensed. Free forever. We also have a web app at [revibe.help](https://revibe.help) if you want shareable reports and monitoring.
-
-### What about false positives?
-
-The health score and smell detectors are based on heuristics. They're meant to surface potential issues, not definitive bugs. Use your judgment when reviewing the suggestions.
-
-### Can I use this in CI/CD?
-
-Yes! Use `revibe scan . --json` for machine-readable output. The exit code is 0 for successful scans (regardless of health score). You can parse the JSON and fail builds based on health thresholds.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Here's how to get started:
+Examples:
 
 ```bash
-# Clone the repo
-git clone https://github.com/webmyc/revibe.git
-cd revibe
-
-# Install in development mode
-pip install -e ".[dev,pretty]"
-
-# Run tests
-pytest tests/ -v
-
-# Run the CLI
 revibe scan .
 ```
-
-### Running Tests
+Scan the current repository.
 
 ```bash
-# All tests
-pytest tests/ -v
-
-# With coverage
-pytest tests/ -v --cov=revibe --cov-report=term-missing
-
-# Specific test file
-pytest tests/test_fixer.py -v
+revibe scan ./src
 ```
+Scan a specific directory.
+
+### Output Control
+
+```bash
+revibe scan . --fix
+```
+Generate `REVIBE_FIXES.md` with human readable report and AI prompts.
+
+```bash
+revibe scan . --json
+```
+Output structured results to stdout.
+
+```bash
+revibe scan . --html
+```
+Generate static shareable report (`revibe_report.html`).
+
+### Scope Control
+
+```bash
+revibe scan . --ignore vendor,dist
+```
+Exclude generated or third party directories.
+
+### AI Prompt Output
+
+```bash
+revibe scan . --cursor
+```
+Generate `.cursorrules` optimized for Cursor.
+
+```bash
+revibe scan . --claude
+```
+Generate `REVIBE_CLAUDE.md` notes for Claude.
+
+Revibe never applies changes automatically.
+
+### Exit Codes
+
+- **0**: scan completed successfully
+- **1**: invalid usage or configuration
+- **2**: internal error
+
+Revibe does not fail builds unless you explicitly wire it to do so.
+
+## Typical Workflow
+
+1. Run Revibe on a codebase
+2. Review the report
+3. Pick one concrete issue
+4. Paste the prompt into your AI tool
+5. Review the output like a senior engineer would
+6. Repeat
+
+This fits naturally into:
+- refactoring sessions
+- onboarding to unfamiliar code
+- AI heavy development workflows
+- pre release sanity checks
+
+## Why Not SonarQube?
+
+SonarQube is a strong tool.
+Revibe is not trying to replace it.
+
+They solve different problems.
+
+### SonarQube Optimizes For
+- enforcement
+- standardized rules
+- CI pipelines
+- organizational governance
+- long term metric tracking
+
+It answers: *Does this code meet our standards? Should this build fail?*
+
+### Revibe Optimizes For
+- insight
+- context
+- AI assisted workflows
+- human judgment
+- early understanding
+
+It answers: *Where should I look first? What feels risky but is not obviously broken?*
+
+### Key Differences
+
+| SonarQube | Revibe |
+|-----------|--------|
+| Rule based | Heuristic based |
+| Enforces | Suggests |
+| CI first | Developer first |
+| Pass or fail | Gradient signals |
+| Dashboards | Prompts |
+
+### When SonarQube Wins
+- large teams
+- regulated environments
+- strict quality gates
+- enterprise systems
+
+If you need guarantees, use SonarQube.
+
+### When Revibe Wins
+- AI first development
+- solo developers or small teams
+- refactoring and exploration
+- legacy code onboarding
+- early stage products
+
+If you need clarity before certainty, use Revibe.
+
+### The Short Version
+SonarQube tells you whether code is acceptable.
+Revibe helps you decide what to do next.
+
+They coexist well.
+
+## Project Status
+
+Revibe is early stage and experimental.
+
+- heuristics will evolve
+- APIs may change
+- output quality improves with feedback
+
+If you want something polished and static, this is not it.
+If you enjoy tools that grow through real use, welcome.
+
+## Contributing
+
+Revibe is opinionated by design.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for our design principles and guide.
+
+Expect discussion around why something is flagged, not just how.
+
+## License
+
+MIT
 
 ---
 
-## 📜 License
+**Final note, straight up**
 
-MIT — do whatever you want with it.
+Do not turn Revibe into a rule engine.
 
----
-
-## 🔗 Links
-
-- **Website**: [revibe.help](https://revibe.help)
-- **PyPI**: [pypi.org/project/revibe](https://pypi.org/project/revibe)
-- **npm**: [npmjs.com/package/revibe](https://www.npmjs.com/package/revibe)
-- **GitHub**: [github.com/webmyc/revibe](https://github.com/webmyc/revibe)
-
----
-
-*Built with ❤️ for vibe coders everywhere.*
+Its value is not precision.
+Its value is taste, judgment, and good questions.
