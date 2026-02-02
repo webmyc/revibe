@@ -346,8 +346,8 @@ def _get_score_styles() -> str:
 .score-low { background: conic-gradient(var(--success) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); }
 .score-moderate { background: conic-gradient(var(--warning) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); }
 .score-elevated { background: conic-gradient(var(--elevated) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); }
-.score-high, .score-critical { 
-    background: conic-gradient(var(--danger) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0); 
+.score-high, .score-critical {
+    background: conic-gradient(var(--danger) calc(var(--score) * 3.6deg), var(--bg-tertiary) 0);
 }
 '''
 

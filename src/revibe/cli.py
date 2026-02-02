@@ -71,37 +71,37 @@ def _add_scan_arguments(parser: argparse.ArgumentParser) -> None:
     output_group.add_argument("--html", action="store_true", help="Generate an HTML report")
     output_group.add_argument("--json", action="store_true", help="Output results as JSON to stdout")
     output_group.add_argument(
-        "--fix", 
-        action="store_true", 
+        "--fix",
+        action="store_true",
         help="Generate REVIBE_FIXES.md with copy-paste AI fix instructions"
     )
     output_group.add_argument(
-        "--cursor", 
-        action="store_true", 
+        "--cursor",
+        action="store_true",
         help="Generate .cursorrules file with fix priorities"
     )
     output_group.add_argument(
-        "--claude", 
-        action="store_true", 
+        "--claude",
+        action="store_true",
         help="Generate CLAUDE.md section with health notes"
     )
     output_group.add_argument(
-        "--all", 
-        action="store_true", 
+        "--all",
+        action="store_true",
         help="Generate all output formats (HTML + JSON + fix files)"
     )
 
     # Other options
     parser.add_argument(
-        "--output", "-o", 
-        type=str, 
-        metavar="DIR", 
+        "--output", "-o",
+        type=str,
+        metavar="DIR",
         help="Output directory for generated files (default: codebase root)"
     )
     parser.add_argument(
-        "--ignore", 
-        type=str, 
-        metavar="DIRS", 
+        "--ignore",
+        type=str,
+        metavar="DIRS",
         help="Comma-separated list of additional directories to ignore"
     )
     parser.add_argument("--quiet", "-q", action="store_true", help="Suppress terminal output (useful with --json)")
@@ -114,7 +114,12 @@ def _log(message: str, quiet: bool, json_mode: bool) -> None:
         print(message)
 
 
-def _perform_scan(path: Path, additional_ignores: Optional[list[str]], quiet: bool, json_mode: bool) -> Optional[ScanResult]:
+def _perform_scan(
+    path: Path,
+    additional_ignores: Optional[list[str]],
+    quiet: bool,
+    json_mode: bool
+) -> Optional[ScanResult]:
     """Perform the codebase scan and analysis."""
     _log("  Discovering files...", quiet, json_mode)
     source_files = scan_codebase(str(path), additional_ignores)
